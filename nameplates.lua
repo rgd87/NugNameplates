@@ -4,8 +4,8 @@ local isClassic = select(4,GetBuildInfo()) <= 19999
 
 local filterOwnSpells = true
 
-local LibAuraTypes = LibStub("LibAuraTypes")
-local ROOT_PRIO = LibAuraTypes.GetDebuffTypePriority("ROOT")
+local LibAuraTypes = LibStub("LibAuraTypes", true)
+local ROOT_PRIO = LibAuraTypes and LibAuraTypes.GetDebuffTypePriority("ROOT") or 0
 
 local font3 = [[Interface\AddOns\oUF_NugNameplates\fonts\ClearFont.ttf]]
 
@@ -258,12 +258,13 @@ function ns.oUF_NugNameplates(self, unit)
 
         health._SetValue = health.SetValue
         health.SetValue = function(self, v)
-            -- print(v)
-            local offsetx = (v/100)*healthbar_width
+            local min, max = self:GetMinMaxValues()
+            local vp = v/max
+            local offsetx = vp*healthbar_width
             self.lost:SetPoint("TOPLEFT", self, "TOPLEFT", offsetx, 0)
             self.lost:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", offsetx, 0)
             -- self.lost:SmoothFade(v)
-            self.lost:SetNewHealthTarget(v)
+            self.lost:SetNewHealthTarget(vp)
             self:_SetValue(v)
         end
 
@@ -284,7 +285,7 @@ function ns.oUF_NugNameplates(self, unit)
         healthlost.UpdateDiff = function(self)
             local diff = self.currentvalue - self.endvalue
             if diff > 0 then
-                self:SetWidth((diff/100)*healthbar_width)
+                self:SetWidth((diff)*healthbar_width)
                 self:SetAlpha(1)
             else
                 self:SetWidth(1)
@@ -301,7 +302,7 @@ function ns.oUF_NugNameplates(self, unit)
             local hl = self.lost
             local diff = hl.currentvalue - hl.endvalue
             if diff > 0 then
-                local d = (diff > 10) and diff/15 or 0.6
+                local d = (diff > 0.1) and diff/15 or 0.006
                 hl.currentvalue = hl.currentvalue - d
                 -- self:SetValue(self.currentvalue)
                 hl:UpdateDiff()
@@ -432,7 +433,9 @@ function ns.oUF_NugNameplates(self, unit)
 
         debuffs.showDebuffType = true
         debuffs.initialAnchor = "TOPLEFT"
-        debuffs.CustomFilter = CustomNameplateDebuffFilter
+        if LibAuraTypes then
+            debuffs.CustomFilter = CustomNameplateDebuffFilter
+        end
         debuffs["spacing-x"] = 3
         debuffs["growth-x"] = "RIGHT"
         debuffs["growth-y"] = "UP"
