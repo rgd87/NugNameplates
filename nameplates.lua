@@ -4,6 +4,18 @@ local isClassic = select(4,GetBuildInfo()) <= 19999
 
 local filterOwnSpells = true
 
+local texture = "Interface\\BUTTONS\\WHITE8X8"
+local barTexture = "Interface\\AddOns\\oUF_NugNameplates\\bar.tga"
+local flat = "Interface\\BUTTONS\\WHITE8X8"
+local targetGlowTexture = "Interface\\AddOns\\oUF_NugNameplates\\target-glow.tga"
+
+local healthbar_width = 85
+local healthbar_height = 6
+local castbar_height = 9
+local total_height = castbar_height + healthbar_height + 2
+
+
+
 local LibAuraTypes = LibStub("LibAuraTypes", true)
 local ROOT_PRIO = LibAuraTypes and LibAuraTypes.GetDebuffTypePriority("ROOT") or 0
 
@@ -82,9 +94,9 @@ function nameplateEventHandler:PLAYER_TARGET_CHANGED(event)
 end
 nameplateEventHandler.UPDATE_MOUSEOVER_UNIT = nameplateEventHandler.PLAYER_TARGET_CHANGED
 
-function ns.oUF_NugNameplatesOnTargetChanged(nameplate, event, unit)
+-- function ns.oUF_NugNameplatesOnTargetChanged(nameplate, event, unit)
     -- print(nameplate and nameplate:GetName(), event, unit)
-end
+-- end
 
 
 local MakeBorder = function(self, tex, left, right, top, bottom, level)
@@ -95,7 +107,7 @@ local MakeBorder = function(self, tex, left, right, top, bottom, level)
     return t
 end
 
-
+--[[
 local pmult = 1
 local function pixelperfect(size)
     return floor(size/pmult + 0.5)*pmult
@@ -106,6 +118,7 @@ if res then
     local w,h = string.match(res, "(%d+)x(%d+)")
     pmult = (768/h) / UIParent:GetScale()
 end
+]]
 
 local PostCreate = function (self, button, icons, index, debuff)
     local width = button:GetWidth()
@@ -223,22 +236,6 @@ function ns.oUF_NugNameplates(self, unit)
         self.colors = colors
         -- set size and points
 
-        local texture = "Interface\\BUTTONS\\WHITE8X8"
-        local barTexture = "Interface\\AddOns\\oUF_NugNameplates\\bar.tga"
-        local flat = "Interface\\BUTTONS\\WHITE8X8"
-        local targetGlowTexture = "Interface\\AddOns\\oUF_NugNameplates\\target-glow.tga"
-
-        local healthbar_width = 85
-        local healthbar_height = 6
-        local castbar_height = 9
-        local total_height = castbar_height + healthbar_height + 2
-
-
-        -- if not InCombatLockdown() then
-        --     local scale = UIParent:GetEffectiveScale()*1
-        --     C_NamePlate.SetNamePlateEnemySize(healthbar_width * scale, total_height * scale)
-        -- end
-
         self:SetSize(85, healthbar_height)
         self:SetPoint("CENTER", 0, 0)
 
@@ -246,26 +243,17 @@ function ns.oUF_NugNameplates(self, unit)
         local health = CreateFrame("StatusBar", nil, self)
         health:SetAllPoints()
         health:SetStatusBarTexture(barTexture)
-        -- health:SetStatusBarTexture("Interface\\AddOns\\oUF_NugNameplates\\castbar.tga")
         health.colorHealth = true
         health.colorReaction = true
         health.colorClass = true
         health.colorTapping = true
-        -- health:SetFrameLevel(3)
         -- health.colorDisconnected = true
         health:SetAlpha(1)
 
-        -- local healthlost = CreateFrame("StatusBar", nil, self)
-        -- healthlost:SetAllPoints()
-        -- healthlost:SetFrameLevel(1)
-        -- healthlost:SetFrameStrata("MEDIUM")
-        -- healthlost:SetStatusBarTexture(texture)
-        -- healthlost:GetStatusBarTexture():SetDrawLayer("ARTWORK",-7)
 
         healthlost = health:CreateTexture(nil, "ARTWORK")
         healthlost:SetTexture(texture)
         healthlost:SetVertexColor(1, 0.7, 0.7)
-        -- healthlost:Hide()
         health.lost = healthlost
 
         health._SetValue = health.SetValue
@@ -430,7 +418,6 @@ function ns.oUF_NugNameplates(self, unit)
         debuffs:SetHeight(25)
         debuffs:SetWidth(150)
         debuffs.debuffFilter = "HARMFUL|INCLUDE_NAME_PLATE_ONLY"; -- namepalte filter doesn't work in classic
-        -- debuffs.gap = 6
         debuffs.num = 4
         debuffs.PostCreateIcon = PostCreate
 
