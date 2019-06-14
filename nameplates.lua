@@ -142,9 +142,11 @@ if isClassic then
 else
     UnitGotAggro = function(unit)
         local status = UnitThreatSituation('player',unit)
-        if status and status >= 2 then
-            return true, status == 2
-        end
+        -- if status and status >= 2 then
+            -- return true, status == 2
+        -- end
+        return not UnitAffectingCombat(unit) or (status and status >= 2)
+
         -- if not status or status < 3 then
         --     -- player isn't tanking; get current target
         --     local tank_unit = unit..'target'
@@ -168,16 +170,21 @@ local PostUpdateHealth = function(element, unit, cur, max)
 		t = parent.colors.tapped
 	elseif(element.colorDisconnected and element.disconnected) then
         t = parent.colors.disconnected
-    -- elseif(element.colorClass and UnitIsPlayer(unit)) or
+    elseif(element.colorClass and UnitIsPlayer(unit)) then
     --     (element.colorClassNPC and not UnitIsPlayer(unit)) or
     --     (element.colorClassPet and UnitPlayerControlled(unit) and not UnitIsPlayer(unit)) then
-    --     local _, class = UnitClass(unit)
-    --     t = parent.colors.class[class]
+        local _, class = UnitClass(unit)
+        t = parent.colors.class[class]
+
 
     elseif isPlayerTank and not UnitIsPlayer(unit) and not UnitGotAggro(unit) then
         t = parent.colors.lostaggro
     elseif execute_range and cur/max < execute_range then
         t = parent.colors.execute
+    elseif(element.colorReaction and not UnitThreatSituation('player',unit) and UnitReaction(unit, 'player')) then
+        t = parent.colors.reaction[UnitReaction(unit, 'player')]
+    elseif(element.colorHealth) then
+		t = parent.colors.health
     end
 
     if(t) then
@@ -238,6 +245,8 @@ function ns.oUF_NugNameplates(self, unit)
         health:SetStatusBarTexture(barTexture)
         -- health:SetStatusBarTexture("Interface\\AddOns\\oUF_NugNameplates\\castbar.tga")
         health.colorHealth = true
+        health.colorReaction = true
+        health.colorClass = true
         health.colorTapping = true
         -- health:SetFrameLevel(3)
         -- health.colorDisconnected = true
@@ -368,13 +377,14 @@ function ns.oUF_NugNameplates(self, unit)
             castbar:SetHeight(castbar_height)
             castbar:SetPoint("TOPLEFT", health, "BOTTOMLEFT", 0, -2)
             castbar:SetPoint("TOPRIGHT", health, "BOTTOMRIGHT", 0, -2)
-            castbar:SetStatusBarTexture(texture)
-            local r,g,b = 1, 0.5, 0
+            castbar:SetStatusBarTexture(barTexture)
+            local r,g,b = 1, 0.65, 0
             castbar:SetStatusBarColor(r,g,b)
 
             local cbbg = castbar:CreateTexture(nil, "BACKGROUND")
             cbbg:SetAllPoints()
-            cbbg:SetColorTexture(r*0.4, g*0.4, b*0.4)
+            -- cbbg:SetColorTexture(r*0.4, g*0.4, b*0.4)
+            cbbg:SetColorTexture(r*0.2, g*0.2, b*0.2)
 
             -- local castbarborder = MakeBorder(castbar, flat, -1, -1, -1, -1, -2)
             -- castbarborder:SetVertexColor(0,0,0,1)
@@ -400,7 +410,7 @@ function ns.oUF_NugNameplates(self, unit)
 
 
             local spellText = castbar:CreateFontString("");
-            spellText:SetFont(font3, 13, "OUTLINE")
+            spellText:SetFont(font3, 11, "OUTLINE")
             spellText:SetWidth(80+total_height)
             spellText:SetHeight(healthbar_height)
             spellText:SetJustifyH("CENTER")
