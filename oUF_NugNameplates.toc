@@ -1,0 +1,10 @@
+## Interface: 11302
+## Author: d87
+## Version: 1
+## Dependencies: oUF
+## OptionalDeps: LibAuraTypes
+## Notes: oUF nameplates
+## Version: @project-version@
+
+helpers.lua
+nameplates.lua

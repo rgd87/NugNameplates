@@ -1,0 +1,14 @@
+package-as: oUF_NugNameplates
+
+enable-nolib-creation: no
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+required-dependencies:
+  - ouf
+
+ignore:
+  - texture5.psd
+  - README.md
