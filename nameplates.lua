@@ -134,11 +134,13 @@ local PostCreate = function (self, button, icons, index, debuff)
 end
 
 local UnitGotAggro
+local UnitEngaged
 if isClassic then
     UnitGotAggro = function(unit)
         local unitTarget = unit.."target"
         return not UnitAffectingCombat(unit) or not UnitExists(unitTarget) or UnitIsUnit(unitTarget, "player")
     end
+    UnitEngaged = UnitAffectingCombat
 else
     UnitGotAggro = function(unit)
         local status = UnitThreatSituation('player',unit)
@@ -160,6 +162,7 @@ else
         --     end
         -- end
     end
+    UnitEngaged = UnitThreatSituation
 end
 
 local PostUpdateHealth = function(element, unit, cur, max)
@@ -181,7 +184,7 @@ local PostUpdateHealth = function(element, unit, cur, max)
         t = parent.colors.lostaggro
     elseif execute_range and cur/max < execute_range then
         t = parent.colors.execute
-    elseif(element.colorReaction and not UnitThreatSituation('player',unit) and UnitReaction(unit, 'player')) then
+    elseif(element.colorReaction and not UnitEngaged(unit, 'player') and UnitReaction(unit, 'player')) then
         t = parent.colors.reaction[UnitReaction(unit, 'player')]
     elseif(element.colorHealth) then
 		t = parent.colors.health
