@@ -49,7 +49,7 @@ nameplateEventHandler:SetScript("OnEvent", function(self, event, ...)
     return self[event](self, event, ...)
 end)
 
-local nonTargeAlpha = 0.8
+local nonTargeAlpha = 0.7
 -- local mouseoverAlpha = 0.7
 
 function nameplateEventHandler:PLAYER_TARGET_CHANGED(event)
@@ -246,6 +246,7 @@ function ns.oUF_NugNameplates(self, unit)
         health.colorHealth = true
         health.colorReaction = true
         health.colorClass = true
+        health.frequentUpdates = true
         health.colorTapping = true
         -- health.colorDisconnected = true
         health:SetAlpha(1)
@@ -366,8 +367,8 @@ function ns.oUF_NugNameplates(self, unit)
         if not isClassic then
             local castbar = CreateFrame("StatusBar", nil, self)
             castbar:SetHeight(castbar_height)
-            castbar:SetPoint("TOPLEFT", health, "BOTTOMLEFT", 0, -2)
-            castbar:SetPoint("TOPRIGHT", health, "BOTTOMRIGHT", 0, -2)
+            castbar:SetPoint("TOPLEFT", health, "BOTTOMLEFT", 0, -3)
+            castbar:SetPoint("TOPRIGHT", health, "BOTTOMRIGHT", 0, -3)
             castbar:SetStatusBarTexture(barTexture)
             local r,g,b = 1, 0.65, 0
             castbar:SetStatusBarColor(r,g,b)
