@@ -484,6 +484,12 @@ function ns.oUF_NugNameplates(self, unit)
         end
 
 
+        local raidicon = self.Health:CreateTexture(nil, "OVERLAY")
+        raidicon:SetHeight(26)
+        raidicon:SetWidth(26)
+        raidicon:SetPoint("LEFT", self.Health, "RIGHT",5,0)
+        self.RaidTargetIndicator = raidicon
+
     end
 end
 
