@@ -156,24 +156,24 @@ if isClassic then
     UnitEngaged = UnitAffectingCombat
 else
     UnitGotAggro = function(unit)
+        if not UnitAffectingCombat(unit) then return true end
+
         local status = UnitThreatSituation('player',unit)
-        -- if status and status >= 2 then
-            -- return true, status == 2
-        -- end
-        return not UnitAffectingCombat(unit) or (status and status >= 2)
 
-        -- if not status or status < 3 then
-        --     -- player isn't tanking; get current target
-        --     local tank_unit = unit..'target'
+        -- return  or (status and status >= 2)
 
-        --     if UnitExists(tank_unit) and not UnitIsUnit(tank_unit,'player') then
-        --         local s = UnitThreatSituation(tank_unit, unit)
-        --         if s and s >= 2 then
-        --                 -- unit is attacking another tank
-        --                 f.state.tank_mode_offtank = true
-        --         end
-        --     end
-        -- end
+        if not status or status < 3 then
+            -- player isn't tanking; get current target
+            local tank_unit = unit..'target'
+
+            if UnitExists(tank_unit) and not UnitIsUnit(tank_unit,'player') then
+                local s = UnitThreatSituation(tank_unit, unit)
+                if s and s >= 2 then
+                    return false
+                end
+            end
+        end
+        return true
     end
     UnitEngaged = UnitThreatSituation
 end
