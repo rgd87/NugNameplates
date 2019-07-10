@@ -230,6 +230,15 @@ local CustomNameplateDebuffFilter = function(element, unit, button, name, textur
 end
 
 
+local defaultUIFilter = function(element, unit, button, name, texture,
+    count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID,
+    canApply, isBossDebuff, casterIsPlayer, nameplateShowAll)
+
+    return nameplateShowAll or
+		   (nameplateShowSelf and (caster == "player" or caster == "pet" or caster == "vehicle"));
+end
+
+
 function ns.oUF_NugNameplates(self, unit)
     if unit:match("nameplate") then
 
@@ -434,9 +443,14 @@ function ns.oUF_NugNameplates(self, unit)
 
         debuffs.showDebuffType = true
         debuffs.initialAnchor = "TOPLEFT"
-        if LibAuraTypes then
-            debuffs.CustomFilter = CustomNameplateDebuffFilter
+        if isClassic then
+            if LibAuraTypes then
+                debuffs.CustomFilter = CustomNameplateDebuffFilter
+            end
+        else
+            debuffs.CustomFilter = defaultUIFilter
         end
+
         debuffs["spacing-x"] = 3
         debuffs["growth-x"] = "RIGHT"
         debuffs["growth-y"] = "UP"
