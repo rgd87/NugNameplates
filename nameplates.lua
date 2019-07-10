@@ -419,6 +419,14 @@ function ns.oUF_NugNameplates(self, unit)
             spellText:SetPoint("TOP", castbar, "BOTTOM",-1,0)
             castbar.Text = spellText
 
+            castbar.PostCastStart = function(self, unit, name)
+                if self.notInterruptible then
+                    self:SetStatusBarColor(1, 0.65, 0)
+                else
+                    self:SetStatusBarColor(0.5, 0.5, 0.5)
+                end
+            end
+
             self.Castbar = castbar
         end
 
