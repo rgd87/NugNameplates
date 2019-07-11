@@ -386,6 +386,7 @@ function ns.oUF_NugNameplates(self, unit)
             cbbg:SetAllPoints()
             -- cbbg:SetColorTexture(r*0.4, g*0.4, b*0.4)
             cbbg:SetColorTexture(r*0.2, g*0.2, b*0.2)
+            castbar.bg = cbbg
 
             -- local castbarborder = MakeBorder(castbar, flat, -1, -1, -1, -1, -2)
             -- castbarborder:SetVertexColor(0,0,0,1)
@@ -421,9 +422,13 @@ function ns.oUF_NugNameplates(self, unit)
 
             castbar.PostCastStart = function(self, unit, name)
                 if self.notInterruptible then
-                    self:SetStatusBarColor(1, 0.65, 0)
+                    local r,g,b = 0.7, 0.7, 0.7
+                    self:SetStatusBarColor(r, g, b)
+                    self.bg:SetColorTexture(r*0.2, g*0.2, b*0.2)
                 else
-                    self:SetStatusBarColor(0.5, 0.5, 0.5)
+                    local r,g,b = 1, 0.65, 0
+                    self:SetStatusBarColor(r, g, b)
+                    self.bg:SetColorTexture(r*0.2, g*0.2, b*0.2)
                 end
             end
 
