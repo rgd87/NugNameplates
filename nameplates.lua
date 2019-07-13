@@ -420,17 +420,129 @@ function ns.oUF_NugNameplates(self, unit)
             spellText:SetPoint("TOP", castbar, "BOTTOM",-1,0)
             castbar.Text = spellText
 
-            castbar.PostCastStart = function(self, unit, name)
+
+            local highlight = castbar:CreateTexture(nil, "ARTWORK", nil, 3)
+            highlight:SetAllPoints(castbar)
+            highlight:SetTexture(flat)
+            highlight:SetBlendMode("ADD")
+            highlight:SetVertexColor(0.3, 0.3, 0.3)
+            highlight:SetAlpha(0)
+
+            local ag = highlight:CreateAnimationGroup()
+            local sa1 = ag:CreateAnimation("Alpha")
+            sa1:SetFromAlpha(0)
+            sa1:SetToAlpha(1)
+            sa1:SetSmoothing("OUT")
+            sa1:SetDuration(0.1)
+            sa1:SetOrder(1)
+
+            local sa2 = ag:CreateAnimation("Alpha")
+            sa2:SetFromAlpha(1)
+            sa2:SetToAlpha(0)
+            -- sa2:SetSmoothing("IN")
+            sa2:SetDuration(0.15)
+            sa2:SetOrder(1)
+
+            castbar.flash = ag
+
+
+            castbar.SetColor = function(self, r,g,b)
+                self:SetStatusBarColor(r, g, b)
+                self.bg:SetColorTexture(r*0.2, g*0.2, b*0.2)
+            end
+
+            local updateInterruptible = function(self, unit, name)
                 if self.notInterruptible then
                     local r,g,b = 0.7, 0.7, 0.7
-                    self:SetStatusBarColor(r, g, b)
-                    self.bg:SetColorTexture(r*0.2, g*0.2, b*0.2)
+                    self:SetColor(r,g,b)
                 else
                     local r,g,b = 1, 0.65, 0
-                    self:SetStatusBarColor(r, g, b)
-                    self.bg:SetColorTexture(r*0.2, g*0.2, b*0.2)
+                    self:SetColor(r,g,b)
                 end
             end
+            castbar.PostCastNotInterruptible = updateInterruptible
+            castbar.PostCastInterruptible = updateInterruptible
+            -- castbar.PostCastStart = updateInterruptible
+
+            castbar.PostCastInterrupted = function(self, unit)
+                self.status = "Interrupted"
+                self.fading = true
+                self.fadeStartTime = GetTime()
+            end
+            castbar.PostCastFailed = function(self, unit)
+                self.status = "Failed"
+                self.fading = true
+                self.fadeStartTime = GetTime()
+            end
+            castbar.PostCastStop = function(self, unit)
+            --     self.status = "Stopped"
+                self.flash:Play()
+            end
+            castbar.PostCastStart = function(self, unit)
+                self.status = nil
+                self.fading = nil
+                self.fadeStartTime = nil
+                self:SetAlpha(1)
+                updateInterruptible(self, unit)
+            end
+            castbar.PostChannelStart = castbar.PostCastStart
+
+            castbar.OnUpdate = function(self, elapsed)
+                if(self.casting) then
+                    local duration = self.duration + elapsed
+                    if(duration >= self.max) then
+                        self.casting = nil
+                        self.channeling = nil
+                        self.fading = true
+                        self.fadeStartTime = GetTime()
+                    end
+
+                    self.duration = duration
+                    self:SetValue(duration)
+                elseif(self.channeling) then
+                    local duration = self.duration - elapsed
+                    if(duration <= 0) then
+                        self.channeling = nil
+                        self.casting = nil
+                        self.fading = true
+                        self.fadeStartTime = GetTime()
+                    end
+
+                    self.duration = duration
+                    self:SetValue(duration)
+                elseif(self.holdTime > 0) then
+                    self.holdTime = self.holdTime - elapsed
+                else
+                    self.casting = nil
+                    self.castID = nil
+                    self.channeling = nil
+                    self.fading = true
+                    if not self.fadeStartTime then
+                        self.fadeStartTime = GetTime()
+                    end
+                end
+
+                if(self.fading) then
+                    local timePassed = GetTime() - self.fadeStartTime
+
+                    local status = self.status
+                    if status then
+                        if status == "Interrupted" or status == "Failed" then
+                            self:SetColor(1, 0.3, 0.3)
+                        end
+                    else
+                        self:SetColor(0.8, 1, 0.3)
+                    end
+
+                    self:SetAlpha(1 - timePassed*2)
+                    if timePassed*2 >= 1 then
+                        self.fading = nil
+                        self:Hide()
+                    end
+                end
+
+            end
+
 
             self.Castbar = castbar
         end
