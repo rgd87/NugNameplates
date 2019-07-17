@@ -229,6 +229,15 @@ local CustomNameplateDebuffFilter = function(element, unit, button, name, textur
     if prio and prio >= ROOT_PRIO then return true end
 end
 
+local BuffsPurgeableFilter = function(element, unit, button, name, texture,
+    count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID,
+    canApply, isBossDebuff, casterIsPlayer, nameplateShowAll)
+
+    -- if not UnitIsFriend("player", unit) then
+        return isStealable
+    -- end
+end
+
 
 local defaultUIFilter = function(element, unit, button, name, texture,
     count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID,
@@ -582,6 +591,33 @@ function ns.oUF_NugNameplates(self, unit)
         debuffs.size = 19
 
         self.Debuffs = debuffs
+
+        if not isClassic then
+            -- Buffs
+            local buffs = CreateFrame("Frame", "$parentBuffs", self)
+            buffs:SetPoint("LEFT", self, "RIGHT", 5,-3)
+            buffs:SetHeight(20)
+            buffs:SetWidth(100)
+            buffs.debuffFilter = "HELPFUL"; -- namepalte filter doesn't work in classic
+            buffs.num = 3
+            buffs.PostCreateIcon = PostCreate
+
+            buffs.PostUpdateIcon = function(icons, unit, button, index, position, duration, expiration, debuffType, isStealable)
+                local width = button:GetWidth()
+                button:SetHeight(width*0.7)
+            end
+
+            buffs.initialAnchor = "TOPLEFT"
+            buffs.CustomFilter = BuffsPurgeableFilter
+
+            buffs["spacing-x"] = 3
+            buffs["growth-x"] = "RIGHT"
+            buffs["growth-y"] = "UP"
+            buffs.size = 20
+
+            self.Buffs = buffs
+
+        end
 
 
 
