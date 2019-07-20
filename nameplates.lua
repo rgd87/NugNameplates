@@ -10,8 +10,8 @@ local flat = "Interface\\BUTTONS\\WHITE8X8"
 local targetGlowTexture = "Interface\\AddOns\\oUF_NugNameplates\\target-glow.tga"
 
 local healthbar_width = 85
-local healthbar_height = 6
-local castbar_height = 9
+local healthbar_height = 7
+local castbar_height = 10
 local total_height = castbar_height + healthbar_height + 2
 
 
@@ -22,9 +22,12 @@ local ROOT_PRIO = LibAuraTypes and LibAuraTypes.GetDebuffTypePriority("ROOT") or
 local font3 = [[Interface\AddOns\oUF_NugNameplates\fonts\ClearFont.ttf]]
 
 local colors = setmetatable({
-    health = { .7, 0.2, 0.1},
+    -- health = { .7, 0.2, 0.1},
+    health = { 1, 0.12, 0},
     execute = { 1, 0, 0.8 },
-    lostaggro = { 0.6, 0, 1},
+    aggro_lost = { 0.6, 0, 1},
+    aggro_transitioning = { 1, 0.4, 0},
+    aggro_offtank = { 0, 1, 0.5},
 	power = setmetatable({
 		["MANA"] = mana,
 		["RAGE"] = {0.9, 0, 0},
@@ -37,9 +40,9 @@ function ns.UpdateExecute(new_execute)
     execute_range = new_execute
 end
 
-local isPlayerTank
+local isPlayerTanking
 function ns.UpdateTankingStatus(new)
-    isPlayerTank = new
+    isPlayerTanking = new
 end
 
 local nameplateEventHandler = CreateFrame("Frame", nil, UIParent)
@@ -49,7 +52,7 @@ nameplateEventHandler:SetScript("OnEvent", function(self, event, ...)
     return self[event](self, event, ...)
 end)
 
-local nonTargeAlpha = 0.7
+local nonTargeAlpha = 0.6
 -- local mouseoverAlpha = 0.7
 
 function nameplateEventHandler:PLAYER_TARGET_CHANGED(event)
@@ -149,37 +152,79 @@ end
 local UnitGotAggro
 local UnitEngaged
 if isClassic then
-    UnitGotAggro = function(unit)
+    SpecialThreatStatus = function(unit)
+        if not UnitAffectingCombat(unit) then return nil end
+        
         local unitTarget = unit.."target"
-        return not UnitAffectingCombat(unit) or not UnitExists(unitTarget) or UnitIsUnit(unitTarget, "player")
+
+        if not UnitExists(unitTarget) then return nil end
+
+        local isPlayerUnitTarget = UnitIsUnit(unitTarget, "player")
+        
+        local threatStatus = nil
+        if isPlayerTanking and not isPlayerUnitTarget then
+            threatStatus = "aggro_lost"
+        elseif not isPlayerTanking and isPlayerUnitTarget then
+            threatStatus = "aggro_lost"
+        end
+
+        return threatStatus
     end
     UnitEngaged = UnitAffectingCombat
 else
-    UnitGotAggro = function(unit)
-        if not UnitAffectingCombat(unit) then return true end
+    SpecialThreatStatus = function(unit)
+        -- if unit == 'player' or UnitIsUnit('player',unit) then return end
 
+        if not UnitAffectingCombat(unit) then return nil end
+
+        local threatStatus = nil
         local status = UnitThreatSituation('player',unit)
+        if isPlayerTanking then
+            if status then
+                if status == 3 then
+                    threatStatus = nil
+                elseif status >= 1 then
+                    threatStatus = "aggro_transitioning"
+                else
+                    threatStatus = "aggro_lost"
+                end
+            end
 
-        -- return  or (status and status >= 2)
+            -- Kui tankmode
+            if not status or status < 3 then
+                -- player isn't tanking; get current target
+                local tank_unit = unit..'target'
 
-        if not status or status < 3 then
-            -- player isn't tanking; get current target
-            local tank_unit = unit..'target'
-
-            if UnitExists(tank_unit) and not UnitIsUnit(tank_unit,'player') then
-                local s = UnitThreatSituation(tank_unit, unit)
-                if s and s >= 2 then
-                    return false
+                if UnitExists(tank_unit) and not UnitIsUnit(tank_unit,'player') then
+                    if  UnitGroupRolesAssigned(tank_unit) == "TANK" or
+                        (not UnitIsPlayer(tank_unit) and UnitPlayerControlled(tank_unit))
+                    then
+                        threatStatus = "aggro_offtank"
+                    else
+                        threatStatus = "aggro_lost"
+                    end
+                end
+            end
+        else
+            if status then
+                if status == 1 then
+                    threatStatus = "aggro_transitioning"
+                elseif status >= 2 then
+                    threatStatus = "aggro_lost"
                 end
             end
         end
-        return true
+
+        return threatStatus
     end
     UnitEngaged = UnitThreatSituation
 end
 
 local PostUpdateHealth = function(element, unit, cur, max)
     local parent = element.__owner
+
+    local sts = SpecialThreatStatus(unit)
+    local reaction = UnitReaction(unit, 'player')
 
 	local r, g, b, t
 	if(element.colorTapping and not UnitPlayerControlled(unit) and UnitIsTapDenied(unit)) then
@@ -193,12 +238,12 @@ local PostUpdateHealth = function(element, unit, cur, max)
         t = parent.colors.class[class]
 
 
-    elseif isPlayerTank and not UnitIsPlayer(unit) and not UnitGotAggro(unit) then
-        t = parent.colors.lostaggro
+    elseif not UnitIsPlayer(unit) and sts then
+        t = parent.colors[sts]
     elseif execute_range and cur/max < execute_range then
         t = parent.colors.execute
-    elseif(element.colorReaction and not UnitEngaged(unit, 'player') and UnitReaction(unit, 'player')) then
-        t = parent.colors.reaction[UnitReaction(unit, 'player')]
+    elseif(element.colorReaction and not UnitEngaged(unit, 'player') and reaction >= 4) then
+        t = parent.colors.reaction[reaction]
     elseif(element.colorHealth) then
 		t = parent.colors.health
     end
@@ -633,7 +678,7 @@ function ns.oUF_NugNameplates(self, unit)
             --     ns.UpdateTankingStatus(ns.IsTanking(class))
             -- end
         else
-            self:RegisterEvent("UNIT_THREAT_SITUATION_UPDATE", OnHealthEvent)
+            self:RegisterEvent("UNIT_THREAT_LIST_UPDATE", OnHealthEvent)
         end
 
 
