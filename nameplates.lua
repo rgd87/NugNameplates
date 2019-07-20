@@ -678,7 +678,7 @@ function ns.oUF_NugNameplates(self, unit)
             --     ns.UpdateTankingStatus(ns.IsTanking(class))
             -- end
         else
-            self:RegisterEvent("UNIT_THREAT_LIST_UPDATE", OnHealthEvent)
+            self:RegisterEvent("UNIT_THREAT_SITUATION_UPDATE", OnHealthEvent)
         end
 
 
