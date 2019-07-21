@@ -252,8 +252,8 @@ if isClassic then
         local threatStatus = nil
         if isPlayerTanking and not isPlayerUnitTarget then
             threatStatus = "aggro_lost"
-        elseif not isPlayerTanking and isPlayerUnitTarget then
-            threatStatus = "aggro_lost"
+        -- elseif not isPlayerTanking and isPlayerUnitTarget then
+        --     threatStatus = "aggro_lost"
         end
 
         return threatStatus
