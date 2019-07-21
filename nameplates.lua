@@ -21,6 +21,27 @@ local ROOT_PRIO = LibAuraTypes and LibAuraTypes.GetDebuffTypePriority("ROOT") or
 
 local font3 = [[Interface\AddOns\oUF_NugNameplates\fonts\ClearFont.ttf]]
 
+local UnitAffectingCombat = UnitAffectingCombat
+local UnitExists = UnitExists
+local UnitIsUnit = UnitIsUnit
+local UnitThreatSituation = UnitThreatSituation
+local UnitGroupRolesAssigned = UnitGroupRolesAssigned
+local UnitIsPlayer = UnitIsPlayer
+local UnitPlayerControlled = UnitPlayerControlled
+local IsInGroup = IsInGroup
+local IsInInstance = IsInInstance
+local UnitIsPlayer = UnitIsPlayer
+local UnitIsFriend = UnitIsFriend
+local GetTime = GetTime
+local UnitGUID = UnitGUID
+local C_NamePlate = C_NamePlate
+local oUF = oUF
+local UnitClass = UnitClass
+local UnitIsTapDenied = UnitIsTapDenied
+local UnitReaction = UnitReaction
+
+local SpecialThreatStatus
+local UnitEngaged
 
 local healthColor = { 1, 0.12, 0 }
 local importantNPC = { hsv_shift(healthColor, -0.1, 0, 0.0) }
@@ -32,11 +53,6 @@ local colors = setmetatable({
     aggro_lost = { 0.6, 0, 1},
     aggro_transitioning = { 1, 0.4, 0},
     aggro_offtank = { 0, 1, 0.5},
-	power = setmetatable({
-		["MANA"] = mana,
-		["RAGE"] = {0.9, 0, 0},
-		["ENERGY"] = {1, 1, 0.4},
-	}, {__index = oUF.colors.power}),
 }, {__index = oUF.colors})
 
 
@@ -68,7 +84,7 @@ if not isClassic then
         [128969] = importantNPC, -- Siege of Boralus, Ashvane Commander, casts Bolstering Shout which applies an 8 second magic buff to all nearby trash, reducing the damage they take by 75%.
         [136549] = importantNPC, -- Siege of Boralus, Ashvane Cannoneer, casts frontal aoe
         -- [137516] = importantNPC, -- Siege of Boralus, Ashvane Invader, casts Stinging Venom Coating (id:275835) which buffs their melee attacks
-        
+
         [134990] = importantNPC, -- Temple of Sethraliss, Charged Dust Devil, casts Heal
         -- Aspix Lightning Shield Spell ID: 263246
         -- [134629] = importantNPC, -- Temple of Sethraliss, Scaled Krolusk Rider, frontal aoe
@@ -226,13 +242,13 @@ local UnitEngaged
 if isClassic then
     SpecialThreatStatus = function(unit)
         if not UnitAffectingCombat(unit) then return nil end
-        
+
         local unitTarget = unit.."target"
 
         if not UnitExists(unitTarget) then return nil end
 
         local isPlayerUnitTarget = UnitIsUnit(unitTarget, "player")
-        
+
         local threatStatus = nil
         if isPlayerTanking and not isPlayerUnitTarget then
             threatStatus = "aggro_lost"
@@ -392,7 +408,7 @@ function ns.oUF_NugNameplates(self, unit)
         health:SetAlpha(1)
 
 
-        healthlost = health:CreateTexture(nil, "ARTWORK")
+        local healthlost = health:CreateTexture(nil, "ARTWORK")
         healthlost:SetTexture(texture)
         healthlost:SetVertexColor(1, 0.7, 0.7)
         health.lost = healthlost

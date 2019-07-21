@@ -1,5 +1,9 @@
 local addonName, ns = ...
 
+local IsPlayerSpell = IsPlayerSpell
+local UnitClass = UnitClass
+local GetShapeshiftForm = GetShapeshiftForm
+
 local frame = CreateFrame("Frame")
 frame:SetScript("OnEvent", function(self, event, ...)
 	return self[event](self, event, ...)
@@ -82,7 +86,7 @@ end
 
 function frame:SPELLS_CHANGED()
     local spec = GetSpecialization()
-    if not spec then execute_range = nil; return end
+    if not spec then ns.UpdateExecute(nil) return end
     local classopts = ranges[class]
     local range
     if classopts then
