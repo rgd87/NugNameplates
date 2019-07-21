@@ -21,9 +21,13 @@ local ROOT_PRIO = LibAuraTypes and LibAuraTypes.GetDebuffTypePriority("ROOT") or
 
 local font3 = [[Interface\AddOns\oUF_NugNameplates\fonts\ClearFont.ttf]]
 
+
+local healthColor = { 1, 0.12, 0 }
+local importantNPC = { hsv_shift(healthColor, -0.1, 0, 0.0) }
+local importantNPC2 = { hsv_shift(healthColor, -0.2, 0, 0.0) }
 local colors = setmetatable({
     -- health = { .7, 0.2, 0.1},
-    health = { 1, 0.12, 0},
+    health = healthColor,
     execute = { 1, 0, 0.8 },
     aggro_lost = { 0.6, 0, 1},
     aggro_transitioning = { 1, 0.4, 0},
@@ -35,9 +39,66 @@ local colors = setmetatable({
 	}, {__index = oUF.colors.power}),
 }, {__index = oUF.colors})
 
-local npc_colors = {
-    [120651] = { 0.8, 0.4, 0 }, -- M+ explosive affix spheres
-}
+
+local npc_colors
+if not isClassic then
+    npc_colors = {
+        [120651] = { 0.8, 0.4, 0 }, -- M+ explosive affix spheres
+
+        [130909] = importantNPC, -- Underrot, Fetid Maggot, uninterruptible cone aoe
+        [131492] = importantNPC, -- Underrot, Devout Blood Priest, casts Gift of G'huun and Heal
+        -- [134284] = importantNPC, -- Underrot, Fallen Deathspeaker, the main guy in the pack
+
+        [128434] = importantNPC, -- Atal'Dazar, Feasting Skyscreamer, casts Fear
+
+        [127111] = importantNPC, -- Freehold, Irontide Oarsman, casts Sea Spout
+
+        [134174] = importantNPC, -- King's Rest, Shadow-Borne Witch Doctor, casts Shadow Bolt Volley
+        [134331] = importantNPC, -- King's Rest, King Rahu'ai, casts aoe lightning
+
+        [135167] = importantNPC, -- King's Rest, Spectral Berserker, casts Severing Blade (insane bleed)
+        [135235] = importantNPC2, -- King's Rest, Spectral Beastmaster, casts Poison Barrage
+
+        [134139] = importantNPC, -- Shrine of the Storm, Shrine Templar, casts Protective Aura
+        [134150] = importantNPC2, -- Shrine of the Storm, Runecarver Sorn, miniboss dude with Reinforcing Ward
+        [134417] = importantNPC, -- Shrine of the Storm, Deepsea Ritualist, cast Unending Darkness
+
+        [141283] = importantNPC, -- Siege of Boralus, Kul Tiran Halberd, casts frontal aoe
+        [132481] = importantNPC, -- Siege of Boralus, Kul Tiran Halberd, casts frontal aoe
+        [128969] = importantNPC, -- Siege of Boralus, Ashvane Commander, casts Bolstering Shout which applies an 8 second magic buff to all nearby trash, reducing the damage they take by 75%.
+        [136549] = importantNPC, -- Siege of Boralus, Ashvane Cannoneer, casts frontal aoe
+        -- [137516] = importantNPC, -- Siege of Boralus, Ashvane Invader, casts Stinging Venom Coating (id:275835) which buffs their melee attacks
+        
+        [134990] = importantNPC, -- Temple of Sethraliss, Charged Dust Devil, casts Heal
+        -- Aspix Lightning Shield Spell ID: 263246
+        -- [134629] = importantNPC, -- Temple of Sethraliss, Scaled Krolusk Rider, frontal aoe
+        [134364] = importantNPC, -- Temple of Sethraliss, Faithless Tender, casts Heal
+        [139949] = importantNPC, -- Temple of Sethraliss, Plague Doctor, casts Chain Lightning & CC
+
+        [134232] = importantNPC, -- MOTHERLODE, Hired Assassin, casts Poison & AoE
+        [134012] = importantNPC, -- MOTHERLODE, Taskmaster Askari, casts Cover (id:263275) which will redirect 50% of damage taken by nearby allies to the Taskmaster. This buff also reduces all damage taken by 75%.
+        [133432] = importantNPC, -- MOTHERLODE, Venture Co. Alchemist, casts Transmute: Enemy to Goo
+        [133593] = importantNPC, -- MOTHERLODE, Expert Technician, casts Overcharge & Repair
+
+        [130025] = importantNPC, -- Tol Dagor, Irontide Thug, casts Debilitating Shout
+        [130026] = importantNPC, -- Tol Dagor, Bilge Rat Seaspeaker, casts Watery Dome applies a magic buff to all nearby trash mobs which reduces all incoming damage by 75% for 8 seconds. This buff also applies a damage absorption shield.
+        [130655] = importantNPC, -- Tol Dagor, Bobby Howlis, casts Vicious Mauling
+        [135699] = importantNPC, -- Tol Dagor, Ashvane Jailer, will buff (id:258317) themselves and any trash within 10 yards when they channel  Riot Shield. This reduces incoming damage by 75% and redirects all spells back to the player that cast them
+
+        -- [131677] = importantNPC, -- Waycrest, Heartsbane Runeweaver, casts Etch & frontal  Marking Cleave
+        -- Some Devouring Maggots (npcID:134024) have the Parasitic (id:278431) buff. This grants them access to the Infest spell.
+        [137830] = importantNPC, -- Waycrest, Pallid Gorger, will leap to the furthest target with their Ravaging Leap cast & frontal aoe
+        [131586] = importantNPC, -- Waycrest, Banquet Steward, will cast Dinner Bell
+        [131812] = importantNPC, -- Waycrest, Heartsbane Soulcharmer, casts Soul Valley & Warding Candles (id:264027)
+
+        [150292] = importantNPC2, -- Mechagon, Mechagon Cavalry, casts Rapid Fire
+        [150297] = importantNPC, -- Mechagon, Mechagon Renormalizer, casts Shrink & Enlarge
+        [150251] = importantNPC, -- Mechagon, Pistonhead Mechanic, casts Heal & buffs others with Overclock Enrage(id:299588)
+        [144295] = importantNPC, -- Mechagon, Mechagon Mechanic, casts Heal & buffs others with Overclock Enrage(id:293930)
+    }
+else
+    npc_colors = {}
+end
 
 local execute_range
 function ns.UpdateExecute(new_execute)
