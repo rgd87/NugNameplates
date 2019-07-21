@@ -35,6 +35,10 @@ local colors = setmetatable({
 	}, {__index = oUF.colors.power}),
 }, {__index = oUF.colors})
 
+local npc_colors = {
+    [120651] = { 0.8, 0.4, 0 },
+}
+
 local execute_range
 function ns.UpdateExecute(new_execute)
     execute_range = new_execute
@@ -97,9 +101,16 @@ function nameplateEventHandler:PLAYER_TARGET_CHANGED(event)
 end
 nameplateEventHandler.UPDATE_MOUSEOVER_UNIT = nameplateEventHandler.PLAYER_TARGET_CHANGED
 
--- function ns.oUF_NugNameplatesOnTargetChanged(nameplate, event, unit)
+function ns.NameplateCallback(nameplate, event, unit)
+    if event == "NAME_PLATE_UNIT_ADDED" then
+        local guid = UnitGUID(unit)
+        local _, _, _, _, _, npcID = strsplit("-", guid);
+        nameplate.npcID = tonumber(npcID)
+    elseif event == "NAME_PLATE_UNIT_REMOVED" then
+        nameplate.npcID = nil
+    end
     -- print(nameplate and nameplate:GetName(), event, unit)
--- end
+end
 
 
 local MakeBorder = function(self, tex, left, right, top, bottom, level)
@@ -226,6 +237,9 @@ local PostUpdateHealth = function(element, unit, cur, max)
     local sts = SpecialThreatStatus(unit)
     local reaction = UnitReaction(unit, 'player')
 
+    local npcID = element:GetParent()["npcID"]
+    local npcColor = npc_colors[npcID]
+
 	local r, g, b, t
 	if(element.colorTapping and not UnitPlayerControlled(unit) and UnitIsTapDenied(unit)) then
 		t = parent.colors.tapped
@@ -244,6 +258,8 @@ local PostUpdateHealth = function(element, unit, cur, max)
         t = parent.colors.execute
     elseif(element.colorReaction and not UnitEngaged(unit, 'player') and reaction >= 4) then
         t = parent.colors.reaction[reaction]
+    elseif npcColor then
+        t = npcColor
     elseif(element.colorHealth) then
 		t = parent.colors.health
     end
@@ -694,4 +710,4 @@ end
 
 oUF:RegisterStyle("oUF_NugNameplates", ns.oUF_NugNameplates)
 oUF:SetActiveStyle"oUF_NugNameplates"
-oUF:SpawnNamePlates("oUF_Nameplate", ns.oUF_NugNameplatesOnTargetChanged)
+oUF:SpawnNamePlates("oUF_Nameplate", ns.NameplateCallback)
