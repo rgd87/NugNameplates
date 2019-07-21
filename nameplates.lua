@@ -14,7 +14,7 @@ local healthbar_height = 7
 local castbar_height = 10
 local total_height = castbar_height + healthbar_height + 2
 
-
+local hsv_shift = ns.hsv_shift
 
 local LibAuraTypes = LibStub("LibAuraTypes", true)
 local ROOT_PRIO = LibAuraTypes and LibAuraTypes.GetDebuffTypePriority("ROOT") or 0
@@ -36,7 +36,7 @@ local colors = setmetatable({
 }, {__index = oUF.colors})
 
 local npc_colors = {
-    [120651] = { 0.8, 0.4, 0 },
+    [120651] = { 0.8, 0.4, 0 }, -- M+ explosive affix spheres
 }
 
 local execute_range

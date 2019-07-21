@@ -96,3 +96,88 @@ function frame:SPELLS_CHANGED()
     ns.UpdateTankingStatus(IsTanking(class, spec))
 end
 
+
+local function rgb2hsv (r, g, b)
+    local rabs, gabs, babs, rr, gg, bb, h, s, v, diff, diffc, percentRoundFn
+    rabs = r
+    gabs = g
+    babs = b
+    v = math.max(rabs, gabs, babs)
+    diff = v - math.min(rabs, gabs, babs);
+    diffc = function(c) return (v - c) / 6 / diff + 1 / 2 end
+    -- percentRoundFn = function(num) return math.floor(num * 100) / 100 end
+    if (diff == 0) then
+        h = 0
+        s = 0
+    else
+        s = diff / v;
+        rr = diffc(rabs);
+        gg = diffc(gabs);
+        bb = diffc(babs);
+
+        if (rabs == v) then
+            h = bb - gg;
+        elseif (gabs == v) then
+            h = (1 / 3) + rr - bb;
+        elseif (babs == v) then
+            h = (2 / 3) + gg - rr;
+        end
+        if (h < 0) then
+            h = h + 1;
+        elseif (h > 1) then
+            h = h - 1;
+        end
+    end
+    return h, s, v
+end
+
+local function hsv2rgb(h,s,v)
+    local r,g,b
+    local i = math.floor(h * 6);
+    local f = h * 6 - i;
+    local p = v * (1 - s);
+    local q = v * (1 - f * s);
+    local t = v * (1 - (1 - f) * s);
+    local rem = i % 6
+    if rem == 0 then
+        r = v; g = t; b = p;
+    elseif rem == 1 then
+        r = q; g = v; b = p;
+    elseif rem == 2 then
+        r = p; g = v; b = t;
+    elseif rem == 3 then
+        r = p; g = q; b = v;
+    elseif rem == 4 then
+        r = t; g = p; b = v;
+    elseif rem == 5 then
+        r = v; g = p; b = q;
+    end
+
+    return r,g,b
+end
+
+local function hsv_shift(src, hm,sm,vm)
+    local r,g,b = unpack(src)
+    local h,s,v = rgb2hsv(r,g,b)
+
+    -- rollover on hue
+    local h2 = h + hm
+    if h2 < 0 then h2 = h2 + 1 end
+    if h2 > 1 then h2 = h2 - 1 end
+
+    local s2 = s + sm
+    if s2 < 0 then s2 = 0 end
+    if s2 > 1 then s2 = 1 end
+
+    local v2 = v + vm
+    if v2 < 0 then v2 = 0 end
+    if v2 > 1 then v2 = 1 end
+
+    local r2,g2,b2 = hsv2rgb(h2, s2, v2)
+
+    return r2, g2, b2
+end
+
+ns.rgb2hsv = rgb2hsv
+ns.hsv2rgb = hsv2rgb
+ns.hsv_shift = hsv_shift
