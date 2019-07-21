@@ -46,7 +46,10 @@ ranges = {
     HUNTER = {
         function() return IsPlayerSpell(273887) and 0.35 end, -- Killer Instinct
         function() return IsPlayerSpell(260228) and 0.30 end, -- Careful Aim
-    }
+    },
+    MONK = {
+        [3] = function() return IsPlayerSpell(287599) and 0.10 end, -- Pressure Points
+    },
 }
 end
 
