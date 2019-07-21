@@ -278,7 +278,7 @@ else
                 end
             end
         else
-            if status then
+            if status and IsInGroup() and IsInInstance() and not UnitIsPlayer(unit) then
                 if status == 1 then
                     threatStatus = "aggro_transitioning"
                 elseif status >= 2 then
