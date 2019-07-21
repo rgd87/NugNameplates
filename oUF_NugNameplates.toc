@@ -1,10 +1,12 @@
-## Interface: 11302
+## Interface: 80200
 ## Author: d87
 ## Version: 1
 ## Dependencies: oUF
 ## OptionalDeps: LibAuraTypes
 ## Notes: oUF nameplates
 ## Version: @project-version@
+
+Libs\LibAuraTypes\LibAuraTypes.lua
 
 helpers.lua
 nameplates.lua
