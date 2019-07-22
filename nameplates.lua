@@ -305,7 +305,9 @@ else
 
         return threatStatus
     end
-    UnitEngaged = UnitThreatSituation
+    UnitEngaged = function(unit)
+        return UnitThreatSituation("player", unit)
+    end
 end
 
 local PostUpdateHealth = function(element, unit, cur, max)
