@@ -5,6 +5,7 @@ local isClassic = select(4,GetBuildInfo()) <= 19999
 local filterOwnSpells = true
 
 local texture = "Interface\\BUTTONS\\WHITE8X8"
+local shieldTexture = "Interface\\AddOns\\oUF_NugNameplates\\shieldtex.tga"
 local barTexture = "Interface\\AddOns\\oUF_NugNameplates\\bar.tga"
 local flat = "Interface\\BUTTONS\\WHITE8X8"
 local targetGlowTexture = "Interface\\AddOns\\oUF_NugNameplates\\target-glow.tga"
@@ -348,12 +349,7 @@ local PostUpdateHealth = function(element, unit, cur, max)
     end
 
     if(b) then
-        element:SetStatusBarColor(r, g, b)
-
-        local bg = element.bg
-        if(bg) then local mu = bg.multiplier or 1
-            bg:SetVertexColor(r * mu, g * mu, b * mu)
-        end
+        element:SetColor(r, g, b)
     end
 end
 
@@ -409,6 +405,125 @@ function ns.oUF_NugNameplates(self, unit)
         -- health.colorDisconnected = true
         health:SetAlpha(1)
 
+        health.SetColor = function(element, r,g,b)
+            element:SetStatusBarColor(r, g, b)
+
+            local bg = element.bg
+            if(bg) then local mu = bg.multiplier or 1
+                bg:SetVertexColor(r * mu, g * mu, b * mu)
+            end
+
+            local r2 = math.min(1, r+0.6)
+            local g2 = math.min(1, g+0.6)
+            local b2 = math.min(1, b+0.6)
+
+            element.lost:SetVertexColor(r2,g2,b2)
+            element.absorb:SetVertexColor(r,g,b)
+        end
+
+        if not isClassic then
+            -----------------
+            -- ABSORB BAR
+            -----------------
+
+            local absorb = health:CreateTexture(nil, "ARTWORK", nil, 3)
+            absorb:SetHorizTile(true)
+            -- absorb:SetVertTile(true)
+            absorb:SetTexture(shieldTexture, "REPEAT", "REPEAT")
+            absorb:Hide()
+
+            absorb.Update = function(self, absorbValue, health, maxHealth)
+                local p
+                if absorbValue then
+                    p = absorbValue/maxHealth
+                    self.absorbPercent = p
+                else
+                    p = self.absorbPercent
+                end
+                local parent = self:GetParent()
+                local healthPercent = health/maxHealth
+
+                if p + healthPercent >= 1 then
+                    local p2 = 1 - healthPercent
+                    local offsetx = healthPercent*healthbar_width
+                    if p2 == 0 then
+                        self:Hide()
+                    else
+                        self:SetWidth(p2*healthbar_width)
+                        self:SetPoint("TOPLEFT", parent, "TOPLEFT", offsetx, 0)
+                        self:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", offsetx, 0)
+                        self:Show()
+                    end
+                else
+                    local offsetx = healthPercent*healthbar_width
+                    self:SetWidth(p*healthbar_width)
+                    self:SetPoint("TOPLEFT", parent, "TOPLEFT", offsetx, 0)
+                    self:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", offsetx, 0)
+                    self:Show()
+                end
+            end
+            health.absorb = absorb
+
+            ----------------------
+            -- HEAL ABSORB
+            ----------------------
+
+            local healAbsorb = health:CreateTexture(nil, "ARTWORK", nil, 4)
+            healAbsorb:SetTexture(texture)
+            healAbsorb:SetVertexColor(0,0,0, 0.4)
+            healAbsorb.Update = function(self, healAbsorbValue, health, maxHealth)
+                local p
+                if healAbsorbValue then
+                    p = healAbsorbValue/maxHealth
+                    self.healAbsorbPercent = p
+                else
+                    p = self.healAbsorbPercent
+                end
+                local parent = self:GetParent()
+                local healthPercent = health/maxHealth
+
+                if p > healthPercent then
+                    p = healthPercent
+                end
+
+                if p == 0 then
+                    self:Hide()
+                else
+                    local offsetx = (healthPercent-p)*healthbar_width
+                    self:SetWidth(p*healthbar_width)
+                    self:SetPoint("TOPLEFT", parent, "TOPLEFT", offsetx, 0)
+                    self:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", offsetx, 0)
+                    self:Show()
+                end
+            end
+            health.healAbsorb = healAbsorb
+
+            self.HealthPrediction = {
+                -- myBar = myBar,
+                -- otherBar = otherBar,
+                absorbBar = absorb,
+                healAbsorbBar = healAbsorb,
+                -- overAbsorb = overAbsorb,
+                -- overHealAbsorb = overHealAbsorb,
+                -- maxOverflow = 1.05,
+                frequentUpdates = true,
+                Override = function(self, event, unit)
+                    local element = self.HealthPrediction
+
+                    -- local allIncomingHeal = UnitGetIncomingHeals(unit) or 0
+                    local absorb = UnitGetTotalAbsorbs(unit) or 0
+                    local healAbsorb = UnitGetTotalHealAbsorbs(unit) or 0
+                    local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)
+
+                    element.absorbBar:Update(absorb, health, maxHealth)
+                    element.healAbsorbBar:Update(healAbsorb, health, maxHealth)
+                end,
+            }
+        end
+
+        -----------------------
+        -- HEALTH LOSS EFFECT
+        -----------------------
 
         local healthlost = health:CreateTexture(nil, "ARTWORK")
         healthlost:SetTexture(texture)
@@ -422,7 +537,7 @@ function ns.oUF_NugNameplates(self, unit)
             local offsetx = vp*healthbar_width
             self.lost:SetPoint("TOPLEFT", self, "TOPLEFT", offsetx, 0)
             self.lost:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", offsetx, 0)
-            -- self.lost:SmoothFade(v)
+
             self.lost:SetNewHealthTarget(vp)
             self:_SetValue(v)
         end
