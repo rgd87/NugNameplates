@@ -443,7 +443,9 @@ function ns.oUF_NugNameplates(self, unit)
                 local parent = self:GetParent()
                 local healthPercent = health/maxHealth
 
-                if p + healthPercent >= 1 then
+                if p == 0 then
+                    self:Hide()
+                elseif p + healthPercent >= 1 then
                     local p2 = 1 - healthPercent
                     local offsetx = healthPercent*healthbar_width
                     if p2 == 0 then
