@@ -267,8 +267,9 @@ else
         if not UnitAffectingCombat(unit) then return nil end
 
         local threatStatus = nil
-        local status = UnitThreatSituation('player',unit)
         if isPlayerTanking then
+            local status = UnitThreatSituation('player',unit)
+
             if status then
                 if status == 3 then
                     threatStatus = nil
@@ -294,6 +295,7 @@ else
                     end
                 end
             end
+        --[[
         else
             if status and IsInGroup() and IsInInstance() and not UnitIsPlayer(unit) then
                 if status == 1 then
@@ -302,6 +304,7 @@ else
                     threatStatus = "aggro_lost"
                 end
             end
+        ]]
         end
 
         return threatStatus
