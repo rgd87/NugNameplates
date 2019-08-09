@@ -2,7 +2,7 @@ local addonName, ns = ...
 
 local isClassic = select(4,GetBuildInfo()) <= 19999
 
-local filterOwnSpells = true
+local filterOwnSpells = false
 
 local texture = "Interface\\BUTTONS\\WHITE8X8"
 local barTexture = "Interface\\AddOns\\oUF_NugNameplates\\bar.tga"
@@ -53,8 +53,6 @@ local nonTargeAlpha = 0.8
 -- local mouseoverAlpha = 0.7
 
 function nameplateEventHandler:PLAYER_TARGET_CHANGED(event)
-
-    -- print(event)
     local targetFrame = C_NamePlate.GetNamePlateForUnit("target")
     local mouseoverFrame = C_NamePlate.GetNamePlateForUnit("mouseover")
     local playerFrame = C_NamePlate.GetNamePlateForUnit("player")
@@ -191,14 +189,17 @@ local PostUpdateHealth = function(element, unit, cur, max)
     --     (element.colorClassPet and UnitPlayerControlled(unit) and not UnitIsPlayer(unit)) then
         local _, class = UnitClass(unit)
         t = parent.colors.class[class]
-
-
     elseif isPlayerTank and not UnitIsPlayer(unit) and not UnitGotAggro(unit) then
         t = parent.colors.lostaggro
     elseif execute_range and cur/max < execute_range then
         t = parent.colors.execute
     elseif(element.colorReaction and not UnitEngaged(unit, 'player') and UnitReaction(unit, 'player')) then
-        t = parent.colors.reaction[UnitReaction(unit, 'player')]
+        local reaction = UnitReaction(unit, 'player')
+        if reaction <= 2 then
+            t = parent.colors.health
+        else
+            t = parent.colors.reaction[reaction]
+        end
     elseif(element.colorHealth) then
 		t = parent.colors.health
     end
