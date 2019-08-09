@@ -6,6 +6,7 @@
 ## Notes: oUF nameplates
 ## Version: @project-version@
 
+Libs\LibStub\LibStub.lua
 Libs\LibAuraTypes\LibAuraTypes.lua
 
 helpers.lua

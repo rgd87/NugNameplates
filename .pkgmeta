@@ -9,6 +9,10 @@ manual-changelog:
 required-dependencies:
   - ouf
 
+externals:
+  Libs/LibStub: svn://svn.wowace.com/wow/libstub/mainline/tags/1.0
+  Libs/LibAuraTypes: https://github.com/rgd87/LibAuraTypes.git
+
 ignore:
   - texture5.psd
   - README.md
