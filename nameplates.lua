@@ -419,7 +419,9 @@ function ns.oUF_NugNameplates(self, unit)
             local b2 = math.min(1, b+0.6)
 
             element.lost:SetVertexColor(r2,g2,b2)
-            element.absorb:SetVertexColor(r,g,b)
+            if element.absorb then
+                element.absorb:SetVertexColor(r,g,b)
+            end
         end
 
         if not isClassic then
