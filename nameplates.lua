@@ -720,18 +720,21 @@ function ns.oUF_NugNameplates(self, unit)
                 self.bg:SetColorTexture(r*0.2, g*0.2, b*0.2)
             end
 
-            local updateInterruptible = function(self, unit, name)
+            local updateCastBarColor = function(self, unit, name)
                 if self.notInterruptible then
                     local r,g,b = 0.7, 0.7, 0.7
+                    self:SetColor(r,g,b)
+                elseif self.channeling then
+                    local r,g,b = 0.8, 1, 0.3
                     self:SetColor(r,g,b)
                 else
                     local r,g,b = 1, 0.65, 0
                     self:SetColor(r,g,b)
                 end
             end
-            castbar.PostCastNotInterruptible = updateInterruptible
-            castbar.PostCastInterruptible = updateInterruptible
-            -- castbar.PostCastStart = updateInterruptible
+            castbar.PostCastNotInterruptible = updateCastBarColor
+            castbar.PostCastInterruptible = updateCastBarColor
+            -- castbar.PostCastStart = updateCastBarColor
 
             castbar.PostCastInterrupted = function(self, unit)
                 self.status = "Interrupted"
@@ -743,8 +746,14 @@ function ns.oUF_NugNameplates(self, unit)
                 self.fading = true
                 self.fadeStartTime = GetTime()
             end
+            castbar.PostChannelFailed = function(self, unit)
+                self.status = "Failed"
+                self.fading = true
+                self.fadeStartTime = GetTime()
+            end
             castbar.PostCastStop = function(self, unit)
-            --     self.status = "Stopped"
+                -- self.status = "Stopped"
+                -- self.fading = true
                 self.flash:Play()
             end
             castbar.PostCastStart = function(self, unit)
@@ -752,7 +761,7 @@ function ns.oUF_NugNameplates(self, unit)
                 self.fading = nil
                 self.fadeStartTime = nil
                 self:SetAlpha(1)
-                updateInterruptible(self, unit)
+                updateCastBarColor(self, unit)
             end
             castbar.PostChannelStart = castbar.PostCastStart
 
