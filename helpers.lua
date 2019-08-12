@@ -28,6 +28,9 @@ if isClassic then
         WARRIOR = {
             function() return IsAnySpellKnown(20662, 20661, 20660, 20658, 5308) and 0.2 end,
         },
+        PALADIN = {
+            function() return IsAnySpellKnown(24275, 24274, 24239) and 0.2 end,
+        },
     }
 else
 ranges = {

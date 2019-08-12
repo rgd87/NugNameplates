@@ -2,7 +2,7 @@ local addonName, ns = ...
 
 local isClassic = select(4,GetBuildInfo()) <= 19999
 
-local filterOwnSpells = true
+local filterOwnSpells = false
 
 local texture = "Interface\\BUTTONS\\WHITE8X8"
 local shieldTexture = "Interface\\AddOns\\oUF_NugNameplates\\shieldtex.tga"
@@ -138,8 +138,6 @@ local nonTargeAlpha = 0.6
 -- local mouseoverAlpha = 0.7
 
 function nameplateEventHandler:PLAYER_TARGET_CHANGED(event)
-
-    -- print(event)
     local targetFrame = C_NamePlate.GetNamePlateForUnit("target")
     local mouseoverFrame = C_NamePlate.GetNamePlateForUnit("mouseover")
     local playerFrame = C_NamePlate.GetNamePlateForUnit("player")
@@ -421,7 +419,9 @@ function ns.oUF_NugNameplates(self, unit)
             local b2 = math.min(1, b+0.6)
 
             element.lost:SetVertexColor(r2,g2,b2)
-            element.absorb:SetVertexColor(r,g,b)
+            if element.absorb then
+                element.absorb:SetVertexColor(r,g,b)
+            end
         end
 
         if not isClassic then
