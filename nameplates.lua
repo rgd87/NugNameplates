@@ -179,6 +179,8 @@ nameplateEventHandler.UPDATE_MOUSEOVER_UNIT = nameplateEventHandler.PLAYER_TARGE
 
 function ns.NameplateCallback(nameplate, event, unit)
     if event == "NAME_PLATE_UNIT_ADDED" then
+        nameplateEventHandler:PLAYER_TARGET_CHANGED()
+
         local guid = UnitGUID(unit)
         local _, _, _, _, _, npcID = strsplit("-", guid);
         nameplate.npcID = tonumber(npcID)
@@ -642,7 +644,7 @@ function ns.oUF_NugNameplates(self, unit)
         self.TargetGlow = targetGlow
 
 
-        if not isClassic then
+        -- if not isClassic then
             local castbar = CreateFrame("StatusBar", nil, self)
             castbar:SetHeight(castbar_height)
             castbar:SetPoint("TOPLEFT", health, "BOTTOMLEFT", 0, -3)
@@ -814,7 +816,7 @@ function ns.oUF_NugNameplates(self, unit)
 
 
             self.Castbar = castbar
-        end
+        -- end
 
         -- Debuffs
         local debuffs = CreateFrame("Frame", "$parentDebuffs", self)
