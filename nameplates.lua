@@ -184,6 +184,9 @@ function ns.NameplateCallback(nameplate, event, unit)
         local guid = UnitGUID(unit)
         local _, _, _, _, _, npcID = strsplit("-", guid);
         nameplate.npcID = tonumber(npcID)
+
+        nameplate.Health.lost.currentvalue = 0
+        nameplate.Health.lost.endvalue = 0
     elseif event == "NAME_PLATE_UNIT_REMOVED" then
         nameplate.npcID = nil
     end
