@@ -406,7 +406,6 @@ function ns.oUF_NugNameplates(self, unit)
         health.colorHealth = true
         health.colorReaction = true
         health.colorClass = true
-        health.frequentUpdates = true
         health.colorTapping = true
         -- health.colorDisconnected = true
         health:SetAlpha(1)
@@ -516,7 +515,6 @@ function ns.oUF_NugNameplates(self, unit)
                 -- overAbsorb = overAbsorb,
                 -- overHealAbsorb = overHealAbsorb,
                 -- maxOverflow = 1.05,
-                frequentUpdates = true,
                 Override = function(self, event, unit)
                     local element = self.HealthPrediction
 
@@ -623,13 +621,8 @@ function ns.oUF_NugNameplates(self, unit)
         hl:Hide()
         health.highlight = hl
 
-        -- local healthborder = MakeBorder(health, flat, -1, -1, -1, -1, -2)
-        -- healthborder:SetVertexColor(0,0,0,1)
-        health:SetBackdrop({
-            bgFile = flat,
-            insets = { top = -1, right = -1, bottom= -1, left = -1 },
-        })
-        health:SetBackdropColor(0,0,0,1)
+        local healthborder = MakeBorder(health, flat, -1, -1, -1, -1, -2)
+        healthborder:SetVertexColor(0,0,0,1)
 
         -- Frame background
 
@@ -662,13 +655,8 @@ function ns.oUF_NugNameplates(self, unit)
             cbbg:SetColorTexture(r*0.2, g*0.2, b*0.2)
             castbar.bg = cbbg
 
-            -- local castbarborder = MakeBorder(castbar, flat, -1, -1, -1, -1, -2)
-            -- castbarborder:SetVertexColor(0,0,0,1)
-            castbar:SetBackdrop({
-                bgFile = flat,
-                insets = { top = -1, right = -1, bottom= -1, left = -1 },
-            })
-            castbar:SetBackdropColor(0,0,0,1)
+            local castbarborder = MakeBorder(castbar, flat, -1, -1, -1, -1, -2)
+            castbarborder:SetVertexColor(0,0,0,1)
 
             local ict = castbar:CreateTexture(nil,"ARTWORK",nil,0)
             ict:SetPoint("TOPRIGHT",health,"TOPLEFT", -3, 0)
