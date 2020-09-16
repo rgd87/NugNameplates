@@ -45,7 +45,8 @@ ranges = {
         function() return IsPlayerSpell(198590) and 0.20 end, -- drain soul
     },
     PRIEST = {
-        [3] = function() return (IsPlayerSpell(109142) and 0.35) or (IsPlayerSpell(32379) and 0.20) end, -- twist of fate or swd
+        0.2, 0.2, 0.2
+        -- [3] = function() return (IsPlayerSpell(109142) and 0.35) or (IsPlayerSpell(32379) and 0.20) end, -- twist of fate or swd
     },
     PALADIN = {
         [3] = function() return IsPlayerSpell(24275) and 0.20 end, -- HoW
