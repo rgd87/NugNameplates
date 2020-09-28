@@ -15,6 +15,45 @@ local GetSpecialization = isClassic and function() return 1 end or _G.GetSpecial
 
 local ranges
 
+local function SimplePercentCheck(threshold)
+    return function(p, unit, cur, max)
+        return p < threshold
+    end
+end
+
+local function CondemnExecute()
+    local isMassacre = IsPlayerSpell(281001) or IsPlayerSpell(206315) -- arms, fury massacres
+    local lowT = isMassacre and 0.35 or 0.2
+    local isCondemn = IsPlayerSpell(317349) or IsPlayerSpell(317485) -- arms/prot, fury condemn
+    local highT = isCondemn and 0.8 or 1
+    return function(p, unit, cur, max)
+        return p < lowT or p > highT
+    end
+end
+
+local function TouchOfDeath()
+    local pressurePoints = IsPlayerSpell(287599)
+    return function(p, unit, cur, max)
+        if pressurePoints and UnitIsPlayer(unit) then
+            return p < 0.1
+        else
+            -- local playerMaxHealth = UnitHealthMax("player")
+            -- local isWeak = max < playerMaxHealth
+            -- if isWeak then
+            --     return true
+            -- else
+                return p < 0.15
+            -- end
+        end
+    end
+end
+
+local function Wrap(func)
+    return function()
+        return func
+    end
+end
+
 if isClassic then
     local IsAnySpellKnown = function (...)
         for i=1, select("#", ...) do
@@ -26,37 +65,37 @@ if isClassic then
 
     ranges = {
         WARRIOR = {
-            function() return IsAnySpellKnown(20662, 20661, 20660, 20658, 5308) and 0.2 end,
+            function() return IsAnySpellKnown(20662, 20661, 20660, 20658, 5308) and SimplePercentCheck(0.2) end,
         },
         PALADIN = {
-            function() return IsAnySpellKnown(24275, 24274, 24239) and 0.2 end,
+            function() return IsAnySpellKnown(24275, 24274, 24239) and SimplePercentCheck(0.2) end,
         },
     }
 else
+
 ranges = {
     WARRIOR = {
-        function() return IsPlayerSpell(281001) and 0.35 or 0.2 end, -- massacre
-        function() return IsPlayerSpell(206315) and 0.35 or 0.2 end, -- fury massacre
+        CondemnExecute, CondemnExecute, CondemnExecute,
     },
     ROGUE = {
-        function() return IsPlayerSpell(111240) and 0.30 end, -- blindside
+        function() return IsPlayerSpell(111240) and SimplePercentCheck(0.30) end, -- blindside
     },
     WARLOCK = {
-        function() return IsPlayerSpell(198590) and 0.20 end, -- drain soul
+        function() return IsPlayerSpell(198590) and SimplePercentCheck(0.20) end, -- drain soul
     },
     PRIEST = {
-        0.2, 0.2, 0.2
-        -- [3] = function() return (IsPlayerSpell(109142) and 0.35) or (IsPlayerSpell(32379) and 0.20) end, -- twist of fate or swd
+        Wrap(SimplePercentCheck(0.2)), Wrap(SimplePercentCheck(0.2)), Wrap(SimplePercentCheck(0.2))
+        -- [3] = function() return (IsPlayerSpell(109142) and SimplePercentCheck(0.35)) or (IsPlayerSpell(32379) and SimplePercentCheck(0.20)) end, -- twist of fate or swd
     },
     PALADIN = {
-        [3] = function() return IsPlayerSpell(24275) and 0.20 end, -- HoW
+        Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)),
     },
     HUNTER = {
-        function() return IsPlayerSpell(273887) and 0.35 end, -- Killer Instinct
-        function() return IsPlayerSpell(260228) and 0.30 end, -- Careful Aim
+        function() return IsPlayerSpell(273887) and SimplePercentCheck(0.35) end, -- Killer Instinct
+        function() return IsPlayerSpell(260228) and SimplePercentCheck(0.30) end, -- Careful Aim
     },
     MONK = {
-        [3] = function() return IsPlayerSpell(287599) and 0.10 end, -- Pressure Points
+        TouchOfDeath, TouchOfDeath, TouchOfDeath
     },
 }
 end
@@ -95,7 +134,7 @@ function frame:SPELLS_CHANGED()
     local range
     if classopts then
         range = classopts[spec]
-        if type(range) == "function" then
+        if range then
             range = range()
         end
     end

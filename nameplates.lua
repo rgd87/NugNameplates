@@ -117,9 +117,9 @@ else
     npc_colors = {}
 end
 
-local execute_range
+local IsInExecuteRange
 function ns.UpdateExecute(new_execute)
-    execute_range = new_execute
+    IsInExecuteRange = new_execute
 end
 
 local isPlayerTanking
@@ -340,7 +340,7 @@ local PostUpdateHealth = function(element, unit, cur, max)
 
     elseif not UnitIsPlayer(unit) and sts then
         t = parent.colors[sts]
-    elseif execute_range and cur/max < execute_range then
+    elseif IsInExecuteRange and IsInExecuteRange(cur/max, unit, cur, max) then
         t = parent.colors.execute
     elseif(element.colorReaction and not UnitEngaged(unit, 'player') and reaction >= 4) then
         t = parent.colors.reaction[reaction]
