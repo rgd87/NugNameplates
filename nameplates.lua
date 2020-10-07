@@ -47,6 +47,7 @@ local UnitEngaged
 local healthColor = { 1, 0.12, 0 }
 local importantNPC = { hsv_shift(healthColor, -0.1, 0, 0.0) }
 local importantNPC2 = { hsv_shift(healthColor, -0.2, 0, 0.0) }
+local MPlusAffix = { 0.8, 0.4, 0 }
 local colors = setmetatable({
     -- health = { .7, 0.2, 0.1},
     health = healthColor,
@@ -60,7 +61,9 @@ local colors = setmetatable({
 local npc_colors
 if not isClassic then
     npc_colors = {
-        [120651] = { 0.8, 0.4, 0 }, -- M+ explosive affix spheres
+        [174773] = MPlusAffix, -- Spiteful Shade, Spiteful M+ Affix
+
+        [120651] = MPlusAffix, -- M+ explosive affix spheres
 
         [130909] = importantNPC, -- Underrot, Fetid Maggot, uninterruptible cone aoe
         [131492] = importantNPC, -- Underrot, Devout Blood Priest, casts Gift of G'huun and Heal
