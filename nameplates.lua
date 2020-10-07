@@ -47,7 +47,10 @@ local UnitEngaged
 local healthColor = { 1, 0.12, 0 }
 local importantNPC = { hsv_shift(healthColor, -0.1, 0, 0.0) }
 local importantNPC2 = { hsv_shift(healthColor, -0.2, 0, 0.0) }
+local importantNPC3 = { hsv_shift(healthColor, 0.1, 0, 0.0) }
+local gtfo = { 1, 0.8, 0.8 }
 local MPlusAffix = { 0.8, 0.4, 0 }
+local garbage = {0.4, 0.4, 0.4}
 local colors = setmetatable({
     -- health = { .7, 0.2, 0.1},
     health = healthColor,
@@ -62,6 +65,60 @@ local npc_colors
 if not isClassic then
     npc_colors = {
         [174773] = MPlusAffix, -- Spiteful Shade, Spiteful M+ Affix
+
+        -- Necrotic Wake
+        [166302] = importantNPC, -- Corpse Harvester, casts drain fluids
+        [163121] = importantNPC2, -- Stitched Vanguard, stacking tank damage
+        -- [165137] = importantNPC2, -- Zolramus Gatekeeper, Clinging Darkness and AOe
+
+        [164702] = importantNPC, -- Carrion Worm, Blightbone
+
+        [163618] = importantNPC,  -- Zolramus Necromancer, casts Necrotic bolts
+        [163619] = importantNPC2, -- Zolramus Bonecarver, casts Boneflay on tank
+        [165824] = importantNPC3,  -- Nar'zudah, miniboss before bridge
+
+        [173016] = importantNPC, -- Corpse Collector, casts Coresplatter
+        [172981] = importantNPC2, -- Kyrian Stitchwerk, tank damage
+        [163621] = importantNPC2, -- Goregrind
+
+        [165872] = importantNPC3, -- Flesh Crafter, casts Throw Cleaver, Repair Flesh
+        [173044] = importantNPC3, -- Stitching Assistant, casts Throw Cleaver, Drain fluids
+        [167731] = importantNPC3, -- Separation Assistant, casts Throw Cleaver, Morbid Fixation
+
+        -- De other Side
+        [169905] = importantNPC, -- Risen Warlord, Enrages
+        [168992] = importantNPC2, -- Risen Cultist, casts Dark Lotus
+        [168942] = importantNPC, -- Death Speaker, casts Knockback
+        -- [168934] = importantNPC, -- Enraged Spirit, hude masked troll
+        [170486] = importantNPC, -- Atal'ai Devoted, transforming into crazy serpent
+        [171333] = importantNPC, -- Atal'ai Devoted, transforming into crazy serpent
+        [170572] = importantNPC2, -- Atal'ai Hoodoo Hexxer, casts Hex
+        [170480] = importantNPC3, -- Atal'ai Deathwalker, stack melee bleed, transform after death
+        [170483] = gtfo, -- Atal'ai Deathwalker's Spirit, oneshots
+
+        [167964] = importantNPC2, -- 4.RF-4.RF
+        [167962] = importantNPC, -- Defunct Dental Drill, casts Haywire aoe
+        [167966] = garbage, -- Experimental Sludge
+        [101976] = importantNPC, -- Millificent Manastorm (Boss)
+
+        [164861] = importantNPC, -- Spriggan Barkbinder, casts personal DR
+        [171184] = importantNPC2, -- Mythresh, Sky's Talons, casts Fear aoe
+
+        -- Mists of Tirna Scithe
+        [164921] = importantNPC, -- Drust Harvester, casts interruptible aoe
+        [164929] = importantNPC2, -- Tirnenn Villager
+
+        [164804] = importantNPC, -- Droman Oulfarran (Boss)
+
+        [166301] = importantNPC, -- Mistveil Stalker, Jump and leave bleed
+        -- [166299] = importantNPC2, -- Mistveil Tender, casts Heal
+        [166275] = importantNPC2, -- Mistveil Shaper, casts Shield
+
+        [165251] = importantNPC, -- Illusionary Vulpin (from Mistcaller Boss), fixates
+
+        [167116] = importantNPC, -- Spinemaw Reaver, charges into ranged
+        ---
+
 
         [120651] = MPlusAffix, -- M+ explosive affix spheres
 
