@@ -31,22 +31,20 @@ local function CondemnExecute()
     end
 end
 
+--[[
 local function TouchOfDeath()
     local pressurePoints = IsPlayerSpell(287599)
     return function(p, unit, cur, max)
-        if pressurePoints and UnitIsPlayer(unit) then
-            return p < 0.1
-        else
-            -- local playerMaxHealth = UnitHealthMax("player")
-            -- local isWeak = max < playerMaxHealth
-            -- if isWeak then
-            --     return true
-            -- else
-                return p < 0.15
-            -- end
-        end
+        -- local playerMaxHealth = UnitHealthMax("player")
+        -- local isWeak = max < playerMaxHealth
+        -- if isWeak then
+        --     return true
+        -- else
+        return p < 0.15
+        -- end
     end
 end
+]]
 
 local function Wrap(func)
     return function()
@@ -95,7 +93,10 @@ ranges = {
         function() return IsPlayerSpell(260228) and SimplePercentCheck(0.30) end, -- Careful Aim
     },
     MONK = {
-        TouchOfDeath, TouchOfDeath, TouchOfDeath
+        Wrap(SimplePercentCheck(0.15)), Wrap(SimplePercentCheck(0.15)), Wrap(SimplePercentCheck(0.15)),
+    },
+    HUNTER = {
+        Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)),
     },
 }
 end
