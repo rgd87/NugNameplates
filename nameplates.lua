@@ -20,7 +20,7 @@ local hsv_shift = ns.hsv_shift
 local LibAuraTypes = LibStub("LibAuraTypes", true)
 local ROOT_PRIO = LibAuraTypes and LibAuraTypes.GetDebuffTypePriority("ROOT") or 0
 
-local font3 = [[Interface\AddOns\oUF_NugNameplates\fonts\ClearFont.ttf]]
+local font3 = [[Interface\AddOns\oUF_NugNameplates\fonts\AlegreyaSans-Medium.ttf]]
 
 local UnitAffectingCombat = UnitAffectingCombat
 local UnitExists = UnitExists
