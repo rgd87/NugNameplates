@@ -479,9 +479,9 @@ function ns.oUF_NugNameplates(self, unit)
                 bg:SetVertexColor(r * mu, g * mu, b * mu)
             end
 
-            local r2 = math.min(1, r+0.6)
-            local g2 = math.min(1, g+0.6)
-            local b2 = math.min(1, b+0.6)
+            local r2 = math.min(1, r+0.45)
+            local g2 = math.min(1, g+0.45)
+            local b2 = math.min(1, b+0.45)
 
             element.lost:SetVertexColor(r2,g2,b2)
             if element.absorb then
