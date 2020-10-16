@@ -76,7 +76,7 @@ ranges = {
         CondemnExecute, CondemnExecute, CondemnExecute,
     },
     ROGUE = {
-        function() return IsPlayerSpell(328085) and SimplePercentCheck(0.30) end, -- blindside
+        function() return IsPlayerSpell(328085) and SimplePercentCheck(0.35) end, -- blindside
     },
     WARLOCK = {
         function() return IsPlayerSpell(198590) and SimplePercentCheck(0.20) end, -- drain soul
@@ -87,11 +87,11 @@ ranges = {
     PALADIN = {
         Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)),
     },
-    MONK = {
-        Wrap(SimplePercentCheck(0.15)), Wrap(SimplePercentCheck(0.15)), Wrap(SimplePercentCheck(0.15)),
-    },
     HUNTER = {
         Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)),
+    },
+    MONK = {
+        Wrap(SimplePercentCheck(0.15)), Wrap(SimplePercentCheck(0.15)), Wrap(SimplePercentCheck(0.15)),
     },
 }
 end
