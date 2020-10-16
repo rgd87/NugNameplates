@@ -44,7 +44,8 @@ local UnitReaction = UnitReaction
 local SpecialThreatStatus
 local UnitEngaged
 
-local healthColor = { 1, 0.12, 0 }
+-- local healthColor = { 1, 0.12, 0 }
+local healthColor = { 1, 0.3, 0.22 }
 local importantNPC = { hsv_shift(healthColor, -0.1, 0, 0.0) }
 local importantNPC2 = { hsv_shift(healthColor, -0.2, 0, 0.0) }
 local importantNPC3 = { hsv_shift(healthColor, 0.1, 0, 0.0) }
@@ -670,6 +671,11 @@ function ns.oUF_NugNameplates(self, unit)
 
         self.Health = health
         self.Health.PostUpdate = PostUpdateHealth
+        self.Health.UpdateColor = function(frame, event, unit)
+            local element = frame.Health
+            local cur, max = UnitHealth(unit), UnitHealthMax(unit)
+            element:PostUpdate(unit, cur, max)
+        end
 
 
         local hl = health:CreateTexture(nil, "OVERLAY")
