@@ -80,18 +80,20 @@ ranges = {
     },
     WARLOCK = {
         function() return IsPlayerSpell(198590) and SimplePercentCheck(0.20) end, -- drain soul
+        nil,
+        function() return IsPlayerSpell(17877) and SimplePercentCheck(0.20) end, -- Shadowburn
     },
     PRIEST = {
-        Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)),
+        Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), -- SWD
     },
     PALADIN = {
-        Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)),
+        Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), -- HoW
     },
     HUNTER = {
-        Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)),
+        Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), -- Kill Shot
     },
     MONK = {
-        Wrap(SimplePercentCheck(0.15)), Wrap(SimplePercentCheck(0.15)), Wrap(SimplePercentCheck(0.15)),
+        Wrap(SimplePercentCheck(0.15)), Wrap(SimplePercentCheck(0.15)), Wrap(SimplePercentCheck(0.15)), -- Death Touch
     },
 }
 end
