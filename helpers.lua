@@ -24,7 +24,7 @@ end
 local function CondemnExecute()
     local isMassacre = IsPlayerSpell(281001) or IsPlayerSpell(206315) -- arms, fury massacres
     local lowT = isMassacre and 0.35 or 0.2
-    local isCondemn = IsPlayerSpell(317349) or IsPlayerSpell(317485) -- arms/prot, fury condemn
+    local isCondemn = IsPlayerSpell(317320) or IsPlayerSpell(317485) -- arms/prot, fury condemn
     local highT = isCondemn and 0.8 or 1
     return function(p, unit, cur, max)
         return p < lowT or p > highT
