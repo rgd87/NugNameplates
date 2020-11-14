@@ -67,6 +67,16 @@ if not isClassic then
     npc_colors = {
         [174773] = MPlusAffix, -- Spiteful Shade, Spiteful M+ Affix
 
+        -- Spires of Ascension
+        [163459] = importantNPC, -- Forsworn Mender, healer
+        [168318] = importantNPC2, -- Forsworn Goliath
+
+        [168420] = importantNPC, -- Forsworn Champion, same as Mender
+        [163520] = importantNPC2, -- Forsworn Squad-Leader
+        [168418] = importantNPC, -- Forsworn Inquisitor
+
+        [168718] = importantNPC, -- Forsworn Warden, another healer
+
         -- Necrotic Wake
         [166302] = importantNPC, -- Corpse Harvester, casts drain fluids
         [163121] = importantNPC2, -- Stitched Vanguard, stacking tank damage
