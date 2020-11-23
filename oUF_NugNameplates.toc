@@ -10,4 +10,5 @@ Libs\LibStub\LibStub.lua
 Libs\LibAuraTypes\LibAuraTypes.lua
 
 helpers.lua
+npc_names.lua
 nameplates.lua

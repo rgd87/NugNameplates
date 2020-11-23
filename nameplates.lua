@@ -267,13 +267,17 @@ function nameplateEventHandler:PLAYER_TARGET_CHANGED(event)
 end
 nameplateEventHandler.UPDATE_MOUSEOVER_UNIT = nameplateEventHandler.PLAYER_TARGET_CHANGED
 
+local function GetUnitNPCID(unit)
+    local guid = UnitGUID(unit)
+    local _, _, _, _, _, npcID = strsplit("-", guid);
+    return tonumber(npcID)
+end
+
 function ns.NameplateCallback(nameplate, event, unit)
     if event == "NAME_PLATE_UNIT_ADDED" then
         nameplateEventHandler:PLAYER_TARGET_CHANGED()
 
-        local guid = UnitGUID(unit)
-        local _, _, _, _, _, npcID = strsplit("-", guid);
-        nameplate.npcID = tonumber(npcID)
+        nameplate.npcID = GetUnitNPCID(unit)
 
         nameplate.Health.lost.currentvalue = 0
         nameplate.Health.lost.endvalue = 0
@@ -479,6 +483,19 @@ local defaultUIFilter = function(element, unit, button, name, texture,
 		   (nameplateShowSelf and (caster == "player" or caster == "pet" or caster == "vehicle"));
 end
 
+oUF.Tags.Events["customName"] = "UNIT_NAME_UPDATE"
+oUF.Tags.Methods["customName"] = function(unit)
+    local npcID = GetUnitNPCID(unit)
+    if npcID then
+        local newName = ns.npc_names[npcID]
+        if newName then
+            local lastWord = string.match(newName, "%s*([%w%.%-]+)$")
+            return lastWord
+        end
+    end
+    return ""
+end
+
 
 function ns.oUF_NugNameplates(self, unit)
     if unit:match("nameplate") then
@@ -499,6 +516,18 @@ function ns.oUF_NugNameplates(self, unit)
         health.colorTapping = true
         -- health.colorDisconnected = true
         health:SetAlpha(1)
+
+        self.Health = health
+
+        local unitName = health:CreateFontString();
+        unitName:SetFont(font3, 10, "OUTLINE")
+        -- unitName:SetWidth(85)
+        -- unitName:SetHeight(healthbar_height)
+        unitName:SetJustifyH("CENTER")
+        unitName:SetTextColor(1,1,1)
+        unitName:SetPoint("BOTTOM", health, "TOP",0,1)
+        self:Tag(unitName, '[customName]')
+        -- self.Name = unitName
 
         health.SetColor = function(element, r,g,b)
             element:SetStatusBarColor(r, g, b)
@@ -698,14 +727,12 @@ function ns.oUF_NugNameplates(self, unit)
         health.bg:SetTexture(texture)
         health.bg.multiplier = 0.4
 
-        self.Health = health
         self.Health.PostUpdate = PostUpdateHealth
         self.Health.UpdateColor = function(frame, event, unit)
             local element = frame.Health
             local cur, max = UnitHealth(unit), UnitHealthMax(unit)
             element:PostUpdate(unit, cur, max)
         end
-
 
         local hl = health:CreateTexture(nil, "OVERLAY")
         hl:SetTexture(texture)
