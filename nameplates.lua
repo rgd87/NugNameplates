@@ -67,6 +67,25 @@ if not isClassic then
     npc_colors = {
         [174773] = MPlusAffix, -- Spiteful Shade, Spiteful M+ Affix
 
+        -- Plaguefall
+        [168572] = importantNPC, -- Fungi Stormer
+        [168393] = importantNPC, -- Plaguebelcher
+        [169498] = importantNPC, -- Doctor Ickus, Plague Bomb
+
+
+        -- Theater of Pain
+
+
+        -- Halls of Atonement
+        [164562] = importantNPC, -- Depraved Houndmaster, enrages Gargons
+        [167612] = importantNPC, -- Stoneborn Reaver, casts DR and stun
+        [167876] = importantNPC, -- Inquisitor Sigar
+
+        -- Sanguine Depths
+        [162038] = importantNPC, -- Regal Mistdancer, doing Echoing Thrust
+        [162040] = importantNPC2, -- Grand Overseer, casts Dread Bindings & Curse of Suppression
+        [162057] = importantNPC3, -- Chamber Sentinel, gargoyle
+
         -- Spires of Ascension
         [163459] = importantNPC, -- Forsworn Mender, healer
         [168318] = importantNPC2, -- Forsworn Goliath
