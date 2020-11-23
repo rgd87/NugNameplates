@@ -112,4 +112,5 @@ globals = {
     "UnitGetTotalHealAbsorbs",
     "UnitHealth",
     "UnitHealthMax",
+    "PixelUtil",
 }

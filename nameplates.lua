@@ -496,20 +496,36 @@ oUF.Tags.Methods["customName"] = function(unit)
     return ""
 end
 
+local function pixelperfect(val, region)
+    if not PixelUtil then return val end
+    region = region or UIParent
+    return PixelUtil.GetNearestPixelSize(val, region:GetEffectiveScale(), val)
+end
+
 
 function ns.oUF_NugNameplates(self, unit)
     if unit:match("nameplate") then
 
         self.colors = colors
         -- set size and points
-
-        self:SetSize(85, healthbar_height)
+        local np_width = self:GetParent():GetWidth()
+        local width = np_width*0.9-- 85
+        local height = healthbar_height
+        local ppw = pixelperfect(width, self)
+        local pph = pixelperfect(height, self)
+        castbar_height = pixelperfect(castbar_height, self)
+        local pp1 = pixelperfect(1, self)
+        self:SetSize(ppw, pph)
         self:SetPoint("CENTER", 0, 0)
 
         -- health bar
         local health = CreateFrame("StatusBar", nil, self)
         health:SetAllPoints()
         health:SetStatusBarTexture(barTexture)
+        -- health:SetPoint("LEFT")
+        -- health:SetPoint("RIGHT")
+        -- health:SetHeight(healthbar_height * 4)
+        -- health:SetStatusBarTexture("Interface\\AddOns\\oUF_NugNameplates\\barSoft")
         health.colorHealth = true
         health.colorReaction = true
         health.colorClass = true
@@ -725,6 +741,7 @@ function ns.oUF_NugNameplates(self, unit)
         health.bg = health:CreateTexture(nil, "BACKGROUND")
         health.bg:SetAllPoints(health)
         health.bg:SetTexture(texture)
+        -- health.bg:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\barSoft")
         health.bg.multiplier = 0.4
 
         self.Health.PostUpdate = PostUpdateHealth
@@ -743,8 +760,33 @@ function ns.oUF_NugNameplates(self, unit)
         hl:Hide()
         health.highlight = hl
 
-        local healthborder = MakeBorder(health, flat, -1, -1, -1, -1, -2)
-        healthborder:SetVertexColor(0,0,0,1)
+        local sizeMul = 1.60
+        local borderCENTER = health:CreateTexture(nil, "BACKGROUND")
+        borderCENTER:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\SoftEdgeBG2")
+        borderCENTER:SetVertexColor(0,0,0)
+        borderCENTER:SetTexCoord(12/64, 52/64, 0, 1)
+        borderCENTER:SetPoint("LEFT",0,0)
+        borderCENTER:SetPoint("RIGHT",0,0)
+        borderCENTER:SetHeight(pph*sizeMul)
+
+        local borderLEFT = health:CreateTexture(nil, "BACKGROUND")
+        borderLEFT:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\SoftEdgeBG2")
+        borderLEFT:SetVertexColor(0,0,0)
+        borderLEFT:SetTexCoord(0/64, 12/64, 0, 1)
+        borderLEFT:SetPoint("RIGHT", borderCENTER, "LEFT", 0,0)
+        borderLEFT:SetWidth(pph*sizeMul * 12/64)
+        borderLEFT:SetHeight(pph*sizeMul)
+
+        local borderRIGHT = health:CreateTexture(nil, "BACKGROUND")
+        borderRIGHT:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\SoftEdgeBG2")
+        borderRIGHT:SetVertexColor(0,0,0)
+        borderRIGHT:SetTexCoord(52/64, 64/64, 0, 1)
+        borderRIGHT:SetPoint("LEFT", borderCENTER, "RIGHT", 0,0)
+        borderRIGHT:SetWidth(pph*sizeMul * 12/64)
+        borderRIGHT:SetHeight(pph*sizeMul)
+
+        -- local healthborder = MakeBorder(health, flat, -1, -1, -1, -1, -2)
+        -- healthborder:SetVertexColor(0,0,0,1)
 
         -- Frame background
 
@@ -764,6 +806,7 @@ function ns.oUF_NugNameplates(self, unit)
 
         -- if not isClassic then
             local castbar = CreateFrame("StatusBar", nil, self)
+
             castbar:SetHeight(castbar_height)
             castbar:SetPoint("TOPLEFT", health, "BOTTOMLEFT", 0, -3)
             castbar:SetPoint("TOPRIGHT", health, "BOTTOMRIGHT", 0, -3)
@@ -777,7 +820,7 @@ function ns.oUF_NugNameplates(self, unit)
             cbbg:SetColorTexture(r*0.2, g*0.2, b*0.2)
             castbar.bg = cbbg
 
-            local castbarborder = MakeBorder(castbar, flat, -1, -1, -1, -1, -2)
+            local castbarborder = MakeBorder(castbar, flat, -pp1, -pp1, -pp1, -pp1, -2)
             castbarborder:SetVertexColor(0,0,0,1)
 
             local ict = castbar:CreateTexture(nil,"ARTWORK",nil,0)
@@ -976,13 +1019,14 @@ function ns.oUF_NugNameplates(self, unit)
 
         self.Debuffs = debuffs
 
+        -- Dispellable buffs header
         if not isClassic then
             -- Buffs
-            local buffs = CreateFrame("Frame", "$parentBuffs", self)
+            local buffs = CreateFrame("Frame", "$parentDispellableBuffs", self)
             buffs:SetPoint("LEFT", self, "RIGHT", 5,-3)
             buffs:SetHeight(20)
             buffs:SetWidth(100)
-            buffs.debuffFilter = "HELPFUL"; -- namepalte filter doesn't work in classic
+            buffs.filter = "HELPFUL"; -- namepalte filter doesn't work in classic
             buffs.num = 3
             buffs.PostCreateIcon = PostCreate
 
@@ -1000,8 +1044,36 @@ function ns.oUF_NugNameplates(self, unit)
             buffs.size = 20
 
             self.Buffs = buffs
-
         end
+
+        --[===[
+        -- all buffs
+        if not isClassic then
+            -- Buffs
+            local buffs = CreateFrame("Frame", "$parentBuffs", self)
+            buffs:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", 0, 4)
+            buffs:SetHeight(25)
+            buffs:SetWidth(150)
+            buffs.filter = "HELPFUL|INCLUDE_NAME_PLATE_ONLY"; -- namepalte filter doesn't work in classic
+            buffs.size = 15
+            buffs.num = 3
+            buffs.PostCreateIcon = PostCreate
+
+            buffs.PostUpdateIcon = function(icons, unit, button, index, position, duration, expiration, debuffType, isStealable)
+                local width = button:GetWidth()
+                button:SetHeight(width*0.7)
+            end
+
+            buffs.initialAnchor = "BOTTOMRIGHT"
+
+            buffs["spacing-x"] = 3
+            buffs["growth-x"] = "LEFT"
+            buffs["growth-y"] = "UP"
+
+
+            self.Buffs = buffs
+        end
+        ]===]
 
 
 
