@@ -534,6 +534,44 @@ function ns.oUF_NugNameplates(self, unit)
         -- health.colorDisconnected = true
         health:SetAlpha(1)
 
+        local spark = health:CreateTexture(nil, "OVERLAY")
+		spark:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\spark.tga")
+        spark:SetAlpha(0)
+        spark:SetWidth(10)
+        spark:SetHeight(pph)
+        spark:SetVertexColor(1,0.7,0)
+        spark:SetPoint("CENTER",health)
+		spark:SetBlendMode('ADD')
+        health.spark = spark
+
+        local OriginalSetValue = health.SetValue
+        local math_max = math.max
+        local math_min = math.min
+        health.SetValue = function(self, new)
+            local cur = self:GetValue()
+            local min, max = self:GetMinMaxValues()
+            local fwidth = self:GetWidth()
+            local total = max-min
+
+            -- spark
+            local p = 0
+            if total > 0 then
+                p = (new-min)/(max-min)
+                if p >= 1 then
+                    p = 1
+                    self.spark:SetAlpha(0)
+                else
+                    if p < 0 then p = 0 end
+                    local a = math_min(p*40, 1)
+                    self.spark:SetAlpha(a)
+                end
+            end
+
+            self.spark:SetPoint("CENTER", self, "LEFT", p*fwidth, 0)
+
+            return OriginalSetValue(self, new)
+        end
+
         self.Health = health
 
         local unitName = health:CreateFontString();
