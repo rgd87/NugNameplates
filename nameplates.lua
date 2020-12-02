@@ -489,7 +489,7 @@ oUF.Tags.Methods["customName"] = function(unit)
     if npcID then
         local newName = ns.npc_names[npcID]
         if newName then
-            local lastWord = string.match(newName, "%s*([%w%.%-]+)$")
+            local lastWord = string.match(newName, "%s*([%w%.%'%-]+)$")
             return lastWord
         end
     end
@@ -513,6 +513,7 @@ function ns.oUF_NugNameplates(self, unit)
         local height = healthbar_height
         local ppw = pixelperfect(width, self)
         local pph = pixelperfect(height, self)
+        healthbar_width = ppw
         castbar_height = pixelperfect(castbar_height, self)
         local pp1 = pixelperfect(1, self)
         self:SetSize(ppw, pph)
@@ -738,11 +739,11 @@ function ns.oUF_NugNameplates(self, unit)
         end
 
 
-        health.bg = health:CreateTexture(nil, "BACKGROUND")
+        health.bg = health:CreateTexture(nil, "BACKGROUND", nil, 1)
         health.bg:SetAllPoints(health)
         health.bg:SetTexture(texture)
         -- health.bg:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\barSoft")
-        health.bg.multiplier = 0.4
+        health.bg.multiplier = 0.15
 
         self.Health.PostUpdate = PostUpdateHealth
         self.Health.UpdateColor = function(frame, event, unit)
@@ -764,7 +765,7 @@ function ns.oUF_NugNameplates(self, unit)
         local borderCENTER = health:CreateTexture(nil, "BACKGROUND")
         borderCENTER:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\SoftEdgeBG2")
         borderCENTER:SetVertexColor(0,0,0)
-        borderCENTER:SetTexCoord(12/64, 52/64, 0, 1)
+        borderCENTER:SetTexCoord(11/64, 53/64, 0, 1)
         borderCENTER:SetPoint("LEFT",0,0)
         borderCENTER:SetPoint("RIGHT",0,0)
         borderCENTER:SetHeight(pph*sizeMul)
@@ -772,17 +773,17 @@ function ns.oUF_NugNameplates(self, unit)
         local borderLEFT = health:CreateTexture(nil, "BACKGROUND")
         borderLEFT:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\SoftEdgeBG2")
         borderLEFT:SetVertexColor(0,0,0)
-        borderLEFT:SetTexCoord(0/64, 12/64, 0, 1)
+        borderLEFT:SetTexCoord(0/64, 11/64, 0, 1)
         borderLEFT:SetPoint("RIGHT", borderCENTER, "LEFT", 0,0)
-        borderLEFT:SetWidth(pph*sizeMul * 12/64)
+        borderLEFT:SetWidth(pph*sizeMul * 11/64)
         borderLEFT:SetHeight(pph*sizeMul)
 
         local borderRIGHT = health:CreateTexture(nil, "BACKGROUND")
         borderRIGHT:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\SoftEdgeBG2")
         borderRIGHT:SetVertexColor(0,0,0)
-        borderRIGHT:SetTexCoord(52/64, 64/64, 0, 1)
+        borderRIGHT:SetTexCoord(53/64, 64/64, 0, 1)
         borderRIGHT:SetPoint("LEFT", borderCENTER, "RIGHT", 0,0)
-        borderRIGHT:SetWidth(pph*sizeMul * 12/64)
+        borderRIGHT:SetWidth(pph*sizeMul * 11/64)
         borderRIGHT:SetHeight(pph*sizeMul)
 
         -- local healthborder = MakeBorder(health, flat, -1, -1, -1, -1, -2)
