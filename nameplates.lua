@@ -549,13 +549,24 @@ end
 function ns.oUF_NugNameplates(self, unit)
     if unit:match("nameplate") then
 
+        -- local healthbar_width = 85
+        -- local healthbar_height = 7
+        -- local castbar_height = 10
+        -- local total_height = castbar_height + healthbar_height + 2
+        local hmul = 0.90
+        -- local vmul = 0.2
+        local healthbar_width = pixelperfect(self:GetParent():GetWidth()*hmul, self)
+        -- local healthbar_height = pixelperfect(self:GetParent():GetHeight()*vmul, self)
+        local healthbar_height = pixelperfect(7, self)
+        local castbar_height = pixelperfect(10, self)
+        local total_height = castbar_height + healthbar_height + pixelperfect(2)
+
         self.colors = colors
         -- set size and points
-        local np_width = self:GetParent():GetWidth()
-        local width = np_width*0.9-- 85
+        local width = healthbar_width
         local height = healthbar_height
-        local ppw = pixelperfect(width, self)
-        local pph = pixelperfect(height, self)
+        local ppw = width
+        local pph = height
         healthbar_width = ppw
         castbar_height = pixelperfect(castbar_height, self)
         local pp1 = pixelperfect(1, self)
