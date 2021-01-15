@@ -220,9 +220,14 @@ end
 local nameplateEventHandler = CreateFrame("Frame", nil, UIParent)
 nameplateEventHandler:RegisterEvent("PLAYER_TARGET_CHANGED")
 nameplateEventHandler:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+nameplateEventHandler:RegisterEvent("NAME_PLATE_UNIT_ADDED")
+nameplateEventHandler:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
+
 nameplateEventHandler:SetScript("OnEvent", function(self, event, ...)
     return self[event](self, event, ...)
 end)
+
+local unitNameplates = {}
 
 local nonTargeAlpha = 0.6
 -- local mouseoverAlpha = 0.7
@@ -280,40 +285,94 @@ hooksecurefunc("CompactUnitFrame_UpdateName", function(frame)
     end
 end)
 
-function ns.NameplateCallback(nameplate, event, unit)
-    if event == "NAME_PLATE_UNIT_ADDED" then
-        nameplateEventHandler:PLAYER_TARGET_CHANGED()
+local NugPlate = {}
 
-        nameplate.npcID = GetUnitNPCID(unit)
+local function UpdateName(frame, unit)
+    local name = ns.GetCustomName(unit)
+    frame.Name:SetText(name)
+end
+function nameplateEventHandler:UNIT_NAME_UPDATE(unit)
+    local np = unitNameplates[unit]
+    if not np then return end
+    local frame = np.NugPlate
+    UpdateName(frame, unit)
+end
 
-        nameplate.Health.lost.currentvalue = 0
-        nameplate.Health.lost.endvalue = 0
 
-        --[[
-        local parent = C_NamePlate.GetNamePlateForUnit(unit)
-        if not UnitCanAttack(unit, "player") then
-            parent.unitFrame:Hide() -- oUF
 
-            -- default unitframes
-            parent.UnitFrame:Show()
-            -- parent.UnitFrame.selectionHighlight:Show()
-            parent.UnitFrame:SetAlpha(1)
-            parent.UnitFrame.selectionHighlight:SetAlpha(1)
-        else
-            parent.unitFrame:Show() -- oUF
 
-            -- default unitframes
-            parent.UnitFrame:Hide()
-            parent.UnitFrame.selectionHighlight:Hide()
-            parent.UnitFrame:SetAlpha(0)
-            parent.UnitFrame.selectionHighlight:SetAlpha(0)
-        end
-        ]]
+function nameplateEventHandler:NAME_PLATE_UNIT_ADDED(event, unit)
+    local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
+    if not nameplate then return end
 
-    elseif event == "NAME_PLATE_UNIT_REMOVED" then
-        nameplate.npcID = nil
+    unitNameplates[unit] = nameplate
+
+    nameplateEventHandler:PLAYER_TARGET_CHANGED()
+
+    -- Create
+    if not nameplate.NugPlate then
+        nameplate.NugPlate = CreateFrame('Frame', "$parentNugPlate", nameplate)
+        nameplate.NugPlate:EnableMouse(false)
+
+        ns.SetupFrame(nameplate.NugPlate, unit)
+        -- nameplate.NugPlate.isNamePlate = true
     end
-    -- print(nameplate and nameplate:GetName(), event, unit)
+
+    local isAttackable = UnitCanAttack("player", unit)
+    local isFriendly = UnitReaction(unit, "player") >= 4
+    if not isAttackable and isFriendly then
+        -- names only
+    else
+        -- full
+    end
+    --
+    -- Update for fresh added unit
+
+    local frame = nameplate.NugPlate -- our root custom nameplate frame
+
+    UpdateName(frame, unit)
+
+    frame.npcID = GetUnitNPCID(unit)
+
+    frame.Health.lost.currentvalue = 0
+    frame.Health.lost.endvalue = 0
+
+
+    -- default unitframes
+    local default_nameplate = nameplate.UnitFrame
+    default_nameplate:Hide()
+    default_nameplate.selectionHighlight:Hide()
+    default_nameplate:SetAlpha(0)
+    default_nameplate.selectionHighlight:SetAlpha(0)
+
+
+    --[[
+    local parent = C_NamePlate.GetNamePlateForUnit(unit)
+    if not UnitCanAttack(unit, "player") then
+        parent.unitFrame:Hide() -- oUF
+
+        -- default unitframes
+        parent.UnitFrame:Show()
+        -- parent.UnitFrame.selectionHighlight:Show()
+        parent.UnitFrame:SetAlpha(1)
+        parent.UnitFrame.selectionHighlight:SetAlpha(1)
+    else
+        parent.unitFrame:Show() -- oUF
+
+        -- default unitframes
+        parent.UnitFrame:Hide()
+        parent.UnitFrame.selectionHighlight:Hide()
+        parent.UnitFrame:SetAlpha(0)
+        parent.UnitFrame.selectionHighlight:SetAlpha(0)
+    end
+    ]]
+end
+
+function nameplateEventHandler:NAME_PLATE_UNIT_REMOVED(event, unit)
+    local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
+    nameplate.npcID = nil
+
+    unitNameplates[unit] = nil
 end
 
 
@@ -512,8 +571,12 @@ local defaultUIFilter = function(element, unit, button, name, texture,
 		   (nameplateShowSelf and (caster == "player" or caster == "pet" or caster == "vehicle"));
 end
 
-oUF.Tags.Events["customName"] = "UNIT_NAME_UPDATE"
-oUF.Tags.Methods["customName"] = function(unit)
+-- oUF.Tags.Events["customName"] = "UNIT_NAME_UPDATE"
+-- oUF.Tags.Methods["customName"] = function(unit)
+
+-- end
+
+function ns.GetCustomName(unit)
     if UnitIsPlayer(unit) then
         local _, instanceType = GetInstanceInfo()
         if instanceType == "arena" then
@@ -546,8 +609,7 @@ local function pixelperfect(val, region)
 end
 
 
-function ns.oUF_NugNameplates(self, unit)
-    if unit:match("nameplate") then
+function ns.SetupFrame(self, unit)
 
         -- local healthbar_width = 85
         -- local healthbar_height = 7
@@ -635,8 +697,8 @@ function ns.oUF_NugNameplates(self, unit)
         unitName:SetJustifyH("CENTER")
         unitName:SetTextColor(1,1,1)
         unitName:SetPoint("BOTTOM", health, "TOP",0,1)
-        self:Tag(unitName, '[customName]')
-        -- self.Name = unitName
+        -- self:Tag(unitName, '[customName]')
+        self.Name = unitName
 
         health.SetColor = function(element, r,g,b)
             element:SetStatusBarColor(r, g, b)
@@ -1191,11 +1253,9 @@ function ns.oUF_NugNameplates(self, unit)
         raidicon:SetWidth(26)
         raidicon:SetPoint("LEFT", self.Health, "RIGHT",5,0)
         self.RaidTargetIndicator = raidicon
-
-    end
 end
 
 
-oUF:RegisterStyle("oUF_NugNameplates", ns.oUF_NugNameplates)
-oUF:SetActiveStyle"oUF_NugNameplates"
-oUF:SpawnNamePlates("oUF_Nameplate", ns.NameplateCallback)
+-- oUF:RegisterStyle("oUF_NugNameplates", ns.oUF_NugNameplates)
+-- oUF:SetActiveStyle"oUF_NugNameplates"
+-- oUF:SpawnNamePlates("oUF_Nameplate", ns.NameplateCallback)
