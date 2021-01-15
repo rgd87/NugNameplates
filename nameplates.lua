@@ -288,6 +288,28 @@ function ns.NameplateCallback(nameplate, event, unit)
 
         nameplate.Health.lost.currentvalue = 0
         nameplate.Health.lost.endvalue = 0
+
+        --[[
+        local parent = C_NamePlate.GetNamePlateForUnit(unit)
+        if not UnitCanAttack(unit, "player") then
+            parent.unitFrame:Hide() -- oUF
+
+            -- default unitframes
+            parent.UnitFrame:Show()
+            -- parent.UnitFrame.selectionHighlight:Show()
+            parent.UnitFrame:SetAlpha(1)
+            parent.UnitFrame.selectionHighlight:SetAlpha(1)
+        else
+            parent.unitFrame:Show() -- oUF
+
+            -- default unitframes
+            parent.UnitFrame:Hide()
+            parent.UnitFrame.selectionHighlight:Hide()
+            parent.UnitFrame:SetAlpha(0)
+            parent.UnitFrame.selectionHighlight:SetAlpha(0)
+        end
+        ]]
+
     elseif event == "NAME_PLATE_UNIT_REMOVED" then
         nameplate.npcID = nil
     end
@@ -492,12 +514,26 @@ end
 
 oUF.Tags.Events["customName"] = "UNIT_NAME_UPDATE"
 oUF.Tags.Methods["customName"] = function(unit)
-    local npcID = GetUnitNPCID(unit)
-    if npcID then
-        local newName = ns.npc_names[npcID]
-        if newName then
-            local lastWord = string.match(newName, "%s*([%w%.%'%-]+)$")
-            return lastWord
+    if UnitIsPlayer(unit) then
+        local _, instanceType = GetInstanceInfo()
+        if instanceType == "arena" then
+            for i=1,3 do
+                local arenaUnit = "arena"..i
+                if UnitIsUnit(unit, arenaUnit) then
+                    return tostring(i)
+                end
+            end
+        end
+
+        return UnitName(unit)
+    else
+        local npcID = GetUnitNPCID(unit)
+        if npcID then
+            local newName = ns.npc_names[npcID]
+            if newName then
+                local lastWord = string.match(newName, "%s*([%w%.%'%-]+)$")
+                return lastWord
+            end
         end
     end
     return ""
