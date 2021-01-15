@@ -60,6 +60,7 @@ local colors = setmetatable({
     aggro_transitioning = { 1, 0.4, 0},
     aggro_offtank = { 0, 1, 0.5},
 }, {__index = oUF.colors})
+ns.colors = colors
 
 
 local npc_colors
@@ -223,6 +224,22 @@ nameplateEventHandler:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 nameplateEventHandler:RegisterEvent("NAME_PLATE_UNIT_ADDED")
 nameplateEventHandler:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
 
+-- Name
+nameplateEventHandler:RegisterEvent('UNIT_NAME_UPDATE')
+
+-- Health
+nameplateEventHandler:RegisterEvent('UNIT_HEALTH')
+nameplateEventHandler:RegisterEvent('UNIT_MAXHEALTH')
+-- if(element.colorDisconnected) then
+nameplateEventHandler:RegisterEvent('UNIT_CONNECTION')
+-- if(element.colorSelection) then
+nameplateEventHandler:RegisterEvent('UNIT_FLAGS')
+-- if(element.colorTapping) then
+nameplateEventHandler:RegisterEvent('UNIT_FACTION')
+-- if(element.colorThreat) then
+nameplateEventHandler:RegisterEvent('UNIT_THREAT_LIST_UPDATE')
+
+
 nameplateEventHandler:SetScript("OnEvent", function(self, event, ...)
     return self[event](self, event, ...)
 end)
@@ -300,6 +317,77 @@ end
 
 
 
+local function UpdateHealthColor(frame, unit, cur, max)
+    local parent = frame:GetParent()
+
+    local sts = SpecialThreatStatus(unit)
+    local reaction = UnitReaction(unit, 'player')
+    local health = frame.Health
+
+    local npcID = frame["npcID"]
+    local npcColor = npc_colors[npcID]
+
+    local colors = ns.colors
+
+	local r, g, b, t
+	if(health.colorTapping and not UnitPlayerControlled(unit) and UnitIsTapDenied(unit)) then
+		t = colors.tapped
+	elseif(health.colorDisconnected and health.disconnected) then
+        t = colors.disconnected
+    elseif(health.colorClass and UnitIsPlayer(unit)) then
+    --     (health.colorClassNPC and not UnitIsPlayer(unit)) or
+    --     (health.colorClassPet and UnitPlayerControlled(unit) and not UnitIsPlayer(unit)) then
+        local _, class = UnitClass(unit)
+        t = colors.class[class]
+
+
+    elseif not UnitIsPlayer(unit) and sts then
+        t = colors[sts]
+    elseif IsInExecuteRange and IsInExecuteRange(cur/max, unit, cur, max) then
+        t = colors.execute
+    elseif(health.colorReaction and not UnitEngaged(unit, 'player') and reaction >= 4) then
+        t = colors.reaction[reaction]
+    elseif npcColor then
+        t = npcColor
+    elseif(health.colorHealth) then
+		t = colors.health
+    end
+
+    if(t) then
+        r, g, b = t[1], t[2], t[3]
+    end
+
+    if(b) then
+        health:SetColor(r, g, b)
+    end
+end
+
+local function UpdateHealth(frame, unit)
+    local cur, max = UnitHealth(unit), UnitHealthMax(unit)
+    local health = frame.Health
+
+    health:SetMinMaxValues(0, max)
+    if(UnitIsConnected(unit)) then
+		health:SetValue(cur)
+	else
+		health:SetValue(max)
+    end
+
+    UpdateHealthColor(frame, unit, cur, max)
+end
+
+function nameplateEventHandler:UNIT_HEALTH(unit)
+    local np = unitNameplates[unit]
+    if not np then return end
+    local frame = np.NugPlate
+
+    UpdateHealth(frame, unit)
+end
+nameplateEventHandler.UNIT_MAXHEALTH = nameplateEventHandler.UNIT_HEALTH
+nameplateEventHandler.UNIT_CONNECTION = nameplateEventHandler.UNIT_HEALTH
+nameplateEventHandler.UNIT_FLAGS = nameplateEventHandler.UNIT_HEALTH
+nameplateEventHandler.UNIT_FACTION = nameplateEventHandler.UNIT_HEALTH
+nameplateEventHandler.UNIT_THREAT_LIST_UPDATE = nameplateEventHandler.UNIT_HEALTH
 
 function nameplateEventHandler:NAME_PLATE_UNIT_ADDED(event, unit)
     local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
@@ -331,6 +419,7 @@ function nameplateEventHandler:NAME_PLATE_UNIT_ADDED(event, unit)
     local frame = nameplate.NugPlate -- our root custom nameplate frame
 
     UpdateName(frame, unit)
+    UpdateHealth(frame, unit)
 
     frame.npcID = GetUnitNPCID(unit)
 
@@ -423,8 +512,6 @@ local PostCreate = function (self, button, icons, index, debuff)
     end
 end
 
-local UnitGotAggro
-local UnitEngaged
 if isClassic then
     SpecialThreatStatus = function(unit)
         if not UnitAffectingCombat(unit) then return nil end
@@ -498,49 +585,6 @@ else
         return UnitThreatSituation("player", unit)
     end
 end
-
-local PostUpdateHealth = function(element, unit, cur, max)
-    local parent = element.__owner
-
-    local sts = SpecialThreatStatus(unit)
-    local reaction = UnitReaction(unit, 'player')
-
-    local npcID = element:GetParent()["npcID"]
-    local npcColor = npc_colors[npcID]
-
-	local r, g, b, t
-	if(element.colorTapping and not UnitPlayerControlled(unit) and UnitIsTapDenied(unit)) then
-		t = parent.colors.tapped
-	elseif(element.colorDisconnected and element.disconnected) then
-        t = parent.colors.disconnected
-    elseif(element.colorClass and UnitIsPlayer(unit)) then
-    --     (element.colorClassNPC and not UnitIsPlayer(unit)) or
-    --     (element.colorClassPet and UnitPlayerControlled(unit) and not UnitIsPlayer(unit)) then
-        local _, class = UnitClass(unit)
-        t = parent.colors.class[class]
-
-
-    elseif not UnitIsPlayer(unit) and sts then
-        t = parent.colors[sts]
-    elseif IsInExecuteRange and IsInExecuteRange(cur/max, unit, cur, max) then
-        t = parent.colors.execute
-    elseif(element.colorReaction and not UnitEngaged(unit, 'player') and reaction >= 4) then
-        t = parent.colors.reaction[reaction]
-    elseif npcColor then
-        t = npcColor
-    elseif(element.colorHealth) then
-		t = parent.colors.health
-    end
-
-    if(t) then
-        r, g, b = t[1], t[2], t[3]
-    end
-
-    if(b) then
-        element:SetColor(r, g, b)
-    end
-end
-
 
 local CustomNameplateDebuffFilter = function(element, unit, button, name, texture,
     count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID,
