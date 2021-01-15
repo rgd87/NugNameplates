@@ -273,6 +273,13 @@ local function GetUnitNPCID(unit)
     return tonumber(npcID)
 end
 
+hooksecurefunc("CompactUnitFrame_UpdateName", function(frame)
+	if not frame:IsForbidden() then
+        -- frame.name:SetText(GetUnitName(frame.unit, true))
+        frame.name:SetText(GetUnitName(frame.unit, false))
+    end
+end)
+
 function ns.NameplateCallback(nameplate, event, unit)
     if event == "NAME_PLATE_UNIT_ADDED" then
         nameplateEventHandler:PLAYER_TARGET_CHANGED()
