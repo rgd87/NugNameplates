@@ -1,8 +1,19 @@
 local addonName, ns = ...
 
-local isClassic = select(4,GetBuildInfo()) <= 19999
+NugNameplates = CreateFrame("Frame", nil, UIParent)
+local NugNameplates = NugNameplates
+NugNameplates:RegisterEvent("ADDON_LOADED")
 
+NugNameplates:SetScript("OnEvent", function(self, event, ...)
+    return self[event](self, event, ...)
+end)
+
+local isClassic = select(4,GetBuildInfo()) <= 19999
 local filterOwnSpells = false
+
+local LSM = LibStub("LibSharedMedia-3.0")
+-- LSM:Register("statusbar", "Gradient", [[Interface\AddOns\Aptechka\gradient.tga]])
+-- LSM:Register("font", "AlegreyaSans-Medium", [[Interface\AddOns\Nug\AlegreyaSans-Medium.ttf]],  GetLocale() ~= "enUS" and 15)
 
 local texture = "Interface\\BUTTONS\\WHITE8X8"
 local shieldTexture = "Interface\\AddOns\\oUF_NugNameplates\\shieldtex.tga"
@@ -65,6 +76,36 @@ local colors = setmetatable({
     channeling = {0.8, 1, 0.3},
 }, {__index = oUF.colors})
 ns.colors = colors
+
+local defaults = {
+    profile = {
+        nameFont = "AlegreyaSans-Medium"
+    }
+}
+
+
+NugNameplates:RegisterEvent("PLAYER_TARGET_CHANGED")
+NugNameplates:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+NugNameplates:RegisterEvent("NAME_PLATE_UNIT_ADDED")
+NugNameplates:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
+
+function NugNameplates:ADDON_LOADED(event, loadedName)
+    if loadedName ~= addonName then return end
+
+    NugNameplatesDB = NugNameplatesDB or {}
+    -- self:DoMigrations(NugNameplatesDB)
+    self.db = LibStub("AceDB-3.0"):New("NugNameplatesDB", defaults, "Default") -- Create a DB using defaults and using a shared default profile
+    -- db = self.db
+
+    self.db.RegisterCallback(self, "OnProfileChanged", "Reconfigure")
+    self.db.RegisterCallback(self, "OnProfileCopied", "Reconfigure")
+    self.db.RegisterCallback(self, "OnProfileReset", "Reconfigure")
+
+end
+
+function NugNameplates:Reconfigure()
+end
+
 
 
 local npc_colors
@@ -222,22 +263,13 @@ function ns.UpdateTankingStatus(new)
     isPlayerTanking = new
 end
 
-local nameplateEventHandler = CreateFrame("Frame", nil, UIParent)
-nameplateEventHandler:RegisterEvent("PLAYER_TARGET_CHANGED")
-nameplateEventHandler:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
-nameplateEventHandler:RegisterEvent("NAME_PLATE_UNIT_ADDED")
-nameplateEventHandler:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
-
-nameplateEventHandler:SetScript("OnEvent", function(self, event, ...)
-    return self[event](self, event, ...)
-end)
 
 local unitNameplates = {}
 
 local nonTargeAlpha = 0.6
 -- local mouseoverAlpha = 0.7
 
-function nameplateEventHandler:PLAYER_TARGET_CHANGED(event)
+function NugNameplates:PLAYER_TARGET_CHANGED(event)
     local targetFrame = C_NamePlate.GetNamePlateForUnit("target")
     local mouseoverFrame = C_NamePlate.GetNamePlateForUnit("mouseover")
     local playerFrame = C_NamePlate.GetNamePlateForUnit("player")
@@ -275,7 +307,7 @@ function nameplateEventHandler:PLAYER_TARGET_CHANGED(event)
         end
 	end
 end
-nameplateEventHandler.UPDATE_MOUSEOVER_UNIT = nameplateEventHandler.PLAYER_TARGET_CHANGED
+NugNameplates.UPDATE_MOUSEOVER_UNIT = NugNameplates.PLAYER_TARGET_CHANGED
 
 local function GetUnitNPCID(unit)
     local guid = UnitGUID(unit)
@@ -291,7 +323,7 @@ hooksecurefunc("CompactUnitFrame_UpdateName", function(frame)
 end)
 
 
-nameplateEventHandler:RegisterEvent("RAID_TARGET_UPDATE")
+NugNameplates:RegisterEvent("RAID_TARGET_UPDATE")
 
 local function UpdateRaidIcon(frame, unit)
     local index = GetRaidTargetIndex(unit)
@@ -303,7 +335,7 @@ local function UpdateRaidIcon(frame, unit)
 		raidicon:Hide()
 	end
 end
-function nameplateEventHandler:RAID_TARGET_UPDATE(event)
+function NugNameplates:RAID_TARGET_UPDATE(event)
     for unit, nameplate in pairs(unitNameplates) do
         UpdateRaidIcon(nameplate.NugPlate, unit)
     end
@@ -615,13 +647,13 @@ local function ToggleNameOnly(frame, enable)
 end
 
 
-function nameplateEventHandler:NAME_PLATE_UNIT_ADDED(event, unit)
+function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
     local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
     if not nameplate then return end
 
     unitNameplates[unit] = nameplate
 
-    nameplateEventHandler:PLAYER_TARGET_CHANGED()
+    NugNameplates:PLAYER_TARGET_CHANGED()
 
     -- Create
     if not nameplate.NugPlate then
@@ -685,7 +717,7 @@ function nameplateEventHandler:NAME_PLATE_UNIT_ADDED(event, unit)
     ]]
 end
 
-function nameplateEventHandler:NAME_PLATE_UNIT_REMOVED(event, unit)
+function NugNameplates:NAME_PLATE_UNIT_REMOVED(event, unit)
     local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
     nameplate.npcID = nil
 
@@ -862,6 +894,7 @@ function ns.GetCustomName(unit)
 
         return UnitName(unit)
     else
+        local reaction = UnitReaction(unit, "player")
         local npcID = GetUnitNPCID(unit)
         if npcID then
             local newName = ns.npc_names[npcID]
@@ -869,6 +902,11 @@ function ns.GetCustomName(unit)
                 local lastWord = string.match(newName, "%s*([%w%.%'%-]+)$")
                 return lastWord
             end
+        end
+
+        local isFriendly = reaction >= 4
+        if isFriendly then
+            return UnitName(unit)
         end
     end
     return ""
@@ -962,8 +1000,9 @@ function ns.SetupFrame(self, unit)
 
         self.Health = health
 
-        local unitName = health:CreateFontString();
-        unitName:SetFont(font3, 10, "OUTLINE")
+        local nameFont = LSM:Fetch("font", NugNameplates.db.profile.nameFont)
+        local unitName = self:CreateFontString();
+        unitName:SetFont(nameFont, 10, "OUTLINE")
         -- unitName:SetWidth(85)
         -- unitName:SetHeight(healthbar_height)
         unitName:SetJustifyH("CENTER")
@@ -1267,8 +1306,8 @@ function ns.SetupFrame(self, unit)
             castbar.Icon = ict
 
 
-            local spellText = castbar:CreateFontString("");
-            spellText:SetFont(font3, 11, "OUTLINE")
+            local spellText = castbar:CreateFontString();
+            spellText:SetFont(nameFont, 11, "OUTLINE")
             spellText:SetWidth(80+total_height)
             spellText:SetHeight(healthbar_height)
             spellText:SetJustifyH("CENTER")

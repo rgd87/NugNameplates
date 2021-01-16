@@ -3,6 +3,7 @@
 ## Version: 1
 ## Dependencies: oUF
 ## OptionalDeps: LibAuraTypes
+## SavedVariables: NugNameplatesDB
 ## Notes: oUF nameplates
 ## Version: @project-version@
 
