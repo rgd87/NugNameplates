@@ -228,22 +228,6 @@ nameplateEventHandler:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 nameplateEventHandler:RegisterEvent("NAME_PLATE_UNIT_ADDED")
 nameplateEventHandler:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
 
--- Name
-nameplateEventHandler:RegisterEvent('UNIT_NAME_UPDATE')
-
--- Health
-nameplateEventHandler:RegisterEvent('UNIT_HEALTH')
-nameplateEventHandler:RegisterEvent('UNIT_MAXHEALTH')
--- if(element.colorDisconnected) then
-nameplateEventHandler:RegisterEvent('UNIT_CONNECTION')
--- if(element.colorSelection) then
-nameplateEventHandler:RegisterEvent('UNIT_FLAGS')
--- if(element.colorTapping) then
-nameplateEventHandler:RegisterEvent('UNIT_FACTION')
--- if(element.colorThreat) then
-nameplateEventHandler:RegisterEvent('UNIT_THREAT_LIST_UPDATE')
-
-
 nameplateEventHandler:SetScript("OnEvent", function(self, event, ...)
     return self[event](self, event, ...)
 end)
@@ -306,20 +290,61 @@ hooksecurefunc("CompactUnitFrame_UpdateName", function(frame)
     end
 end)
 
+
+nameplateEventHandler:RegisterEvent("RAID_TARGET_UPDATE")
+
+local function UpdateRaidIcon(frame, unit)
+    local index = GetRaidTargetIndex(unit)
+    local raidicon = frame.RaidTargetIndicator
+	if(index) then
+		SetRaidTargetIconTexture(raidicon, index)
+		raidicon:Show()
+	else
+		raidicon:Hide()
+	end
+end
+function nameplateEventHandler:RAID_TARGET_UPDATE(event)
+    for unit, nameplate in pairs(unitNameplates) do
+        UpdateRaidIcon(nameplate.NugPlate, unit)
+    end
+end
+
+
 local NugPlate = {}
+
+-- TODO: Raid Icons, heal absorb and absorb
+local UnitEventHandler = CreateFrame("Frame", nil, UIParent)
+
+UnitEventHandler:SetScript("OnEvent", function(self, event, unit, ...)
+    local np = unitNameplates[unit]
+    if not np then return end
+    local frame = np.NugPlate
+
+    return self[event](frame, event, unit, ...)
+end)
+
+-- Name
+UnitEventHandler:RegisterEvent('UNIT_NAME_UPDATE')
 
 local function UpdateName(frame, unit)
     local name = ns.GetCustomName(unit)
     frame.Name:SetText(name)
 end
-function nameplateEventHandler:UNIT_NAME_UPDATE(unit)
-    local np = unitNameplates[unit]
-    if not np then return end
-    local frame = np.NugPlate
-    UpdateName(frame, unit)
+function UnitEventHandler:UNIT_NAME_UPDATE(event, unit)
+    UpdateName(self, unit)
 end
 
-
+-- Health
+UnitEventHandler:RegisterEvent('UNIT_HEALTH')
+UnitEventHandler:RegisterEvent('UNIT_MAXHEALTH')
+-- if(element.colorDisconnected) then
+UnitEventHandler:RegisterEvent('UNIT_CONNECTION')
+-- if(element.colorSelection) then
+UnitEventHandler:RegisterEvent('UNIT_FLAGS')
+-- if(element.colorTapping) then
+UnitEventHandler:RegisterEvent('UNIT_FACTION')
+-- if(element.colorThreat) then
+UnitEventHandler:RegisterEvent('UNIT_THREAT_LIST_UPDATE')
 
 local function UpdateHealthColor(frame, unit, cur, max)
     local parent = frame:GetParent()
@@ -380,32 +405,28 @@ local function UpdateHealth(frame, unit)
     UpdateHealthColor(frame, unit, cur, max)
 end
 
-function nameplateEventHandler:UNIT_HEALTH(unit)
-    local np = unitNameplates[unit]
-    if not np then return end
-    local frame = np.NugPlate
-
-    UpdateHealth(frame, unit)
+function UnitEventHandler:UNIT_HEALTH(event, unit)
+    UpdateHealth(self, unit)
 end
-nameplateEventHandler.UNIT_MAXHEALTH = nameplateEventHandler.UNIT_HEALTH
-nameplateEventHandler.UNIT_CONNECTION = nameplateEventHandler.UNIT_HEALTH
-nameplateEventHandler.UNIT_FLAGS = nameplateEventHandler.UNIT_HEALTH
-nameplateEventHandler.UNIT_FACTION = nameplateEventHandler.UNIT_HEALTH
-nameplateEventHandler.UNIT_THREAT_LIST_UPDATE = nameplateEventHandler.UNIT_HEALTH
+UnitEventHandler.UNIT_MAXHEALTH = UnitEventHandler.UNIT_HEALTH
+UnitEventHandler.UNIT_CONNECTION = UnitEventHandler.UNIT_HEALTH
+UnitEventHandler.UNIT_FLAGS = UnitEventHandler.UNIT_HEALTH
+UnitEventHandler.UNIT_FACTION = UnitEventHandler.UNIT_HEALTH
+UnitEventHandler.UNIT_THREAT_LIST_UPDATE = UnitEventHandler.UNIT_HEALTH
 
 
 
-nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_START")
-nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_DELAYED")
-nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_STOP")
-nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_FAILED")
-nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
-nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
-nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
-nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
-nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
-nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_START")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_DELAYED")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_STOP")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_FAILED")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
 
 
 local CastOnUpdate = function(self, elapsed)
@@ -467,14 +488,10 @@ local function CastStart(frame, unit)
     castbar:SetAlpha(1)
     UpdateCastingInfo(castbar, name,texture,startTime,endTime,castID, notInterruptible, spellID)
 end
-function nameplateEventHandler:UNIT_SPELLCAST_START(event,unit, castID, spellID)
-    local np = unitNameplates[unit]
-    if not np then return end
-    local frame = np.NugPlate
-
-    CastStart(frame, unit)
+function UnitEventHandler:UNIT_SPELLCAST_START(event, unit, castID, spellID)
+    CastStart(self, unit)
 end
-nameplateEventHandler.UNIT_SPELLCAST_DELAYED = nameplateEventHandler.UNIT_SPELLCAST_START
+UnitEventHandler.UNIT_SPELLCAST_DELAYED = UnitEventHandler.UNIT_SPELLCAST_START
 
 local function ChannelStart(frame, unit)
     -- if unit ~= frame.unit then return end
@@ -486,14 +503,10 @@ local function ChannelStart(frame, unit)
     castbar:SetAlpha(1)
     castbar:UpdateCastingInfo(name,texture,startTime,endTime, castID, notInterruptible, spellID)
 end
-function nameplateEventHandler:UNIT_SPELLCAST_CHANNEL_START(event,unit)
-    local np = unitNameplates[unit]
-    if not np then return end
-    local frame = np.NugPlate
-
-    ChannelStart(frame, unit)
+function UnitEventHandler:UNIT_SPELLCAST_CHANNEL_START(event,unit)
+    ChannelStart(self, unit)
 end
-nameplateEventHandler.UNIT_SPELLCAST_CHANNEL_UPDATE = nameplateEventHandler.UNIT_SPELLCAST_CHANNEL_START
+UnitEventHandler.UNIT_SPELLCAST_CHANNEL_UPDATE = UnitEventHandler.UNIT_SPELLCAST_CHANNEL_START
 
 local function CastStop(frame, unit, castID)
     local castbar = frame.Castbar
@@ -504,12 +517,8 @@ local function CastStopInstant(frame, unit, castID)
     castbar.fadingStartTime = GetTime() - 3
     castbar:Hide()
 end
-function nameplateEventHandler:UNIT_SPELLCAST_STOP(event, unit, castID)
-    local np = unitNameplates[unit]
-    if not np then return end
-    local frame = np.NugPlate
-
-    CastStop(frame, unit, castID)
+function UnitEventHandler:UNIT_SPELLCAST_STOP(event, unit, castID)
+    CastStop(self, unit, castID)
 end
 
 local function CastFailed(frame, unit, castID)
@@ -520,15 +529,11 @@ local function CastFailed(frame, unit, castID)
         castbar:SetColor(1,0,0)
     end
 end
-function nameplateEventHandler:UNIT_SPELLCAST_FAILED(event, unit, castID)
-    local np = unitNameplates[unit]
-    if not np then return end
-    local frame = np.NugPlate
-
-    CastFailed(frame, unit, castID)
+function UnitEventHandler:UNIT_SPELLCAST_FAILED(event, unit, castID)
+    CastFailed(self, unit, castID)
 end
-nameplateEventHandler.UNIT_SPELLCAST_INTERRUPTED = nameplateEventHandler.UNIT_SPELLCAST_FAILED
-nameplateEventHandler.UNIT_SPELLCAST_CHANNEL_STOP = nameplateEventHandler.UNIT_SPELLCAST_STOP
+UnitEventHandler.UNIT_SPELLCAST_INTERRUPTED = UnitEventHandler.UNIT_SPELLCAST_FAILED
+UnitEventHandler.UNIT_SPELLCAST_CHANNEL_STOP = UnitEventHandler.UNIT_SPELLCAST_STOP
 
 
 local function CastUpdateInterruptible(frame, isInterruptible)
@@ -542,19 +547,11 @@ local function CastUpdateInterruptible(frame, isInterruptible)
         castbar:SetColor(unpack(colors.notInterruptible))
     end
 end
-function nameplateEventHandler:UNIT_SPELLCAST_INTERRUPTIBLE(event,unit)
-    local np = unitNameplates[unit]
-    if not np then return end
-    local frame = np.NugPlate
-
-    CastUpdateInterruptible(frame, true)
+function UnitEventHandler:UNIT_SPELLCAST_INTERRUPTIBLE(event,unit)
+    CastUpdateInterruptible(self, true)
 end
-function nameplateEventHandler:UNIT_SPELLCAST_NOT_INTERRUPTIBLE(event,unit)
-    local np = unitNameplates[unit]
-    if not np then return end
-    local frame = np.NugPlate
-
-    CastUpdateInterruptible(frame, false)
+function UnitEventHandler:UNIT_SPELLCAST_NOT_INTERRUPTIBLE(event,unit)
+    CastUpdateInterruptible(self, false)
 end
 
 local function CastSucceeded(frame, unit, castID)
@@ -565,12 +562,8 @@ local function CastSucceeded(frame, unit, castID)
         castbar:SetColor(1,0,0)
     end
 end
-function nameplateEventHandler:UNIT_SPELLCAST_SUCCEEDED(event, unit, castID)
-    local np = unitNameplates[unit]
-    if not np then return end
-    local frame = np.NugPlate
-
-    CastSucceeded(frame, unit, castID)
+function UnitEventHandler:UNIT_SPELLCAST_SUCCEEDED(event, unit, castID)
+    CastSucceeded(self, unit, castID)
 end
 
 local function UpdateUnitCast(frame, unit)
@@ -1392,6 +1385,8 @@ function ns.SetupFrame(self, unit)
         local raidicon = self.Health:CreateTexture(nil, "OVERLAY")
         raidicon:SetHeight(26)
         raidicon:SetWidth(26)
+        raidicon:Hide()
+        raidicon:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
         raidicon:SetPoint("LEFT", self.Health, "RIGHT",5,0)
         self.RaidTargetIndicator = raidicon
 end
