@@ -244,32 +244,32 @@ function nameplateEventHandler:PLAYER_TARGET_CHANGED(event)
     for _, frame in pairs(C_NamePlate.GetNamePlates()) do
         if frame ~= playerFrame then
             if frame == targetFrame or not UnitExists("target") then
-                if frame.unitFrame then
-                    frame.unitFrame:SetAlpha(1)
-                    frame.unitFrame.Health.highlight:Hide()
-                    -- frame.unitFrame.Health.lost:Show()
+                if frame.NugPlate then
+                    frame.NugPlate:SetAlpha(1)
+                    frame.NugPlate.Health.highlight:Hide()
+                    -- frame.NugPlate.Health.lost:Show()
                     if frame == targetFrame then
-                        frame.unitFrame.TargetGlow:Show()
+                        frame.NugPlate.TargetGlow:Show()
                     else
-                        frame.unitFrame.TargetGlow:Hide()
+                        frame.NugPlate.TargetGlow:Hide()
                     end
                 end
             else
-                if frame.unitFrame then
-                    frame.unitFrame:SetAlpha(nonTargeAlpha)
-                    frame.unitFrame.Health.highlight:Hide()
-                    -- frame.unitFrame.Health.lost:Hide()
-                    frame.unitFrame.TargetGlow:Hide()
+                if frame.NugPlate then
+                    frame.NugPlate:SetAlpha(nonTargeAlpha)
+                    frame.NugPlate.Health.highlight:Hide()
+                    -- frame.NugPlate.Health.lost:Hide()
+                    frame.NugPlate.TargetGlow:Hide()
                 end
             end
 
             if frame == mouseoverFrame and UnitExists("mouseover") and mouseoverFrame ~= targetFrame then
-                if frame.unitFrame then
-                    frame.unitFrame.Health.highlight:Show()
+                if frame.NugPlate then
+                    frame.NugPlate.Health.highlight:Show()
                 end
             else
-                if frame.unitFrame then
-                    frame.unitFrame.Health.highlight:Hide()
+                if frame.NugPlate then
+                    frame.NugPlate.Health.highlight:Hide()
                 end
             end
         end
