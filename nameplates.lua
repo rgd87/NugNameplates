@@ -59,6 +59,10 @@ local colors = setmetatable({
     aggro_lost = { 0.6, 0, 1},
     aggro_transitioning = { 1, 0.4, 0},
     aggro_offtank = { 0, 1, 0.5},
+
+    notInterruptible = {0.7, 0.7, 0.7},
+    casting = {1, 0.65, 0},
+    channeling = {0.8, 1, 0.3},
 }, {__index = oUF.colors})
 ns.colors = colors
 
@@ -389,6 +393,196 @@ nameplateEventHandler.UNIT_FLAGS = nameplateEventHandler.UNIT_HEALTH
 nameplateEventHandler.UNIT_FACTION = nameplateEventHandler.UNIT_HEALTH
 nameplateEventHandler.UNIT_THREAT_LIST_UPDATE = nameplateEventHandler.UNIT_HEALTH
 
+
+
+nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_START")
+nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_DELAYED")
+nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_STOP")
+nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_FAILED")
+nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
+nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
+nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
+nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
+nameplateEventHandler:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
+
+
+local CastOnUpdate = function(self, elapsed)
+    local v = self.elapsed + elapsed
+    local remains = self.endTime - (v+self.startTime)
+    self.elapsed = v
+
+    if self.fadingStartTime then
+        local t = GetTime() - self.fadingStartTime
+        local a = 4* math.max(0, 0.25 - t)
+        self:SetAlpha(a)
+        self:SetValue(self.endTime)
+        if a < 0 then
+            self:Hide()
+        end
+    else
+        local val
+        if self.channeling then val = self.startTime + remains
+        else val = self.endTime - remains end
+        self:SetValue(val)
+        -- self.timeText:SetFormattedText("%.1f",remains)
+        if remains <= -0.5 then
+            self:Hide()
+        end
+    end
+end
+
+local coloredSpells = {}
+local function UpdateCastingInfo(self,name,texture,startTime,endTime,castID, notInterruptible, spellID)
+    if not startTime then return end
+    self.castID = castID
+    self.startTime = startTime / 1000
+    self.endTime = endTime / 1000
+    self:SetMinMaxValues(self.startTime, self.endTime)
+    self.elapsed = GetTime() - self.startTime
+    self.Icon:SetTexture(texture)
+    self.Text:SetText(name)
+
+    local color = coloredSpells[spellID] or (self.channeling and colors.channeling or colors.casting)
+    self:SetColor(unpack(color))
+    self.isActive = true
+    self:Show()
+
+    if self.shield then
+        if notInterruptible then
+            self.shield:Show()
+            self:SetColor(colors.notInterruptible)
+        else
+            self.shield:Hide()
+        end
+    end
+end
+
+local function CastStart(frame, unit)
+    local castbar = frame.Castbar
+    local name, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible, spellID = UnitCastingInfo(unit)
+    castbar.channeling = false
+    castbar.fadingStartTime = nil
+    castbar:SetAlpha(1)
+    UpdateCastingInfo(castbar, name,texture,startTime,endTime,castID, notInterruptible, spellID)
+end
+function nameplateEventHandler:UNIT_SPELLCAST_START(event,unit, castID, spellID)
+    local np = unitNameplates[unit]
+    if not np then return end
+    local frame = np.NugPlate
+
+    CastStart(frame, unit)
+end
+nameplateEventHandler.UNIT_SPELLCAST_DELAYED = nameplateEventHandler.UNIT_SPELLCAST_START
+
+local function ChannelStart(frame, unit)
+    -- if unit ~= frame.unit then return end
+    local castbar = frame.Castbar
+    local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = UnitChannelInfo(unit)
+    castbar.channeling = true
+    local castID = nil
+    castbar.fadingStartTime = nil
+    castbar:SetAlpha(1)
+    castbar:UpdateCastingInfo(name,texture,startTime,endTime, castID, notInterruptible, spellID)
+end
+function nameplateEventHandler:UNIT_SPELLCAST_CHANNEL_START(event,unit)
+    local np = unitNameplates[unit]
+    if not np then return end
+    local frame = np.NugPlate
+
+    ChannelStart(frame, unit)
+end
+nameplateEventHandler.UNIT_SPELLCAST_CHANNEL_UPDATE = nameplateEventHandler.UNIT_SPELLCAST_CHANNEL_START
+
+local function CastStop(frame, unit, castID)
+    local castbar = frame.Castbar
+    castbar.fadingStartTime = castbar.fadingStartTime or GetTime()
+end
+local function CastStopInstant(frame, unit, castID)
+    local castbar = frame.Castbar
+    castbar.fadingStartTime = GetTime() - 3
+    castbar:Hide()
+end
+function nameplateEventHandler:UNIT_SPELLCAST_STOP(event, unit, castID)
+    local np = unitNameplates[unit]
+    if not np then return end
+    local frame = np.NugPlate
+
+    CastStop(frame, unit, castID)
+end
+
+local function CastFailed(frame, unit, castID)
+    -- if unit ~= frame.unit then return end
+    local castbar = frame.Castbar
+    if castbar.castID == castID then
+        CastStop(frame, unit, castID)
+        castbar:SetColor(1,0,0)
+    end
+end
+function nameplateEventHandler:UNIT_SPELLCAST_FAILED(event, unit, castID)
+    local np = unitNameplates[unit]
+    if not np then return end
+    local frame = np.NugPlate
+
+    CastFailed(frame, unit, castID)
+end
+nameplateEventHandler.UNIT_SPELLCAST_INTERRUPTED = nameplateEventHandler.UNIT_SPELLCAST_FAILED
+nameplateEventHandler.UNIT_SPELLCAST_CHANNEL_STOP = nameplateEventHandler.UNIT_SPELLCAST_STOP
+
+
+local function CastUpdateInterruptible(frame, isInterruptible)
+    local castbar = frame.Castbar
+    if isInterruptible then
+        castbar.shield:Hide()
+        local color = castbar.channeling and colors.channeling or colors.casting
+        castbar:SetColor(unpack(color))
+    else
+        castbar.shield:Show()
+        castbar:SetColor(unpack(colors.notInterruptible))
+    end
+end
+function nameplateEventHandler:UNIT_SPELLCAST_INTERRUPTIBLE(event,unit)
+    local np = unitNameplates[unit]
+    if not np then return end
+    local frame = np.NugPlate
+
+    CastUpdateInterruptible(frame, true)
+end
+function nameplateEventHandler:UNIT_SPELLCAST_NOT_INTERRUPTIBLE(event,unit)
+    local np = unitNameplates[unit]
+    if not np then return end
+    local frame = np.NugPlate
+
+    CastUpdateInterruptible(frame, false)
+end
+
+local function CastSucceeded(frame, unit, castID)
+    local castbar = frame.Castbar
+    if castbar.channeling then return end
+    if castbar.castID == castID then
+        CastStop(frame, unit, castID)
+        castbar:SetColor(1,0,0)
+    end
+end
+function nameplateEventHandler:UNIT_SPELLCAST_SUCCEEDED(event, unit, castID)
+    local np = unitNameplates[unit]
+    if not np then return end
+    local frame = np.NugPlate
+
+    CastSucceeded(frame, unit, castID)
+end
+
+local function UpdateUnitCast(frame, unit)
+    if UnitCastingInfo(unit) then return CastStart(frame, unit) end
+    if UnitChannelInfo(unit) then return ChannelStart(frame, unit) end
+    CastStopInstant(frame, unit)
+end
+
+
+
+
+
 function nameplateEventHandler:NAME_PLATE_UNIT_ADDED(event, unit)
     local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
     if not nameplate then return end
@@ -420,6 +614,7 @@ function nameplateEventHandler:NAME_PLATE_UNIT_ADDED(event, unit)
 
     UpdateName(frame, unit)
     UpdateHealth(frame, unit)
+    UpdateUnitCast(frame, unit)
 
     frame.npcID = GetUnitNPCID(unit)
 
@@ -1077,6 +1272,10 @@ function ns.SetupFrame(self, unit)
                 self.bg:SetColorTexture(r*0.2, g*0.2, b*0.2)
             end
 
+            castbar.elapsed = 0
+            castbar:SetScript("OnUpdate", CastOnUpdate)
+
+            --[[
             local updateCastBarColor = function(self, unit, name)
                 if self.notInterruptible then
                     local r,g,b = 0.7, 0.7, 0.7
@@ -1177,7 +1376,7 @@ function ns.SetupFrame(self, unit)
                 end
 
             end
-
+            ]]
 
             self.Castbar = castbar
         -- end
