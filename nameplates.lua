@@ -602,7 +602,17 @@ local function UpdateUnitCast(frame, unit)
 end
 
 
-
+local function ToggleNameOnly(frame, enable)
+    if enable then
+        frame.Name:SetScale(2)
+        frame.Health:Hide()
+        frame.Castbar:Hide()
+    else
+        frame.Name:SetScale(1)
+        frame.Health:Show()
+        frame.Castbar:Show()
+    end
+end
 
 
 function nameplateEventHandler:NAME_PLATE_UNIT_ADDED(event, unit)
@@ -622,17 +632,17 @@ function nameplateEventHandler:NAME_PLATE_UNIT_ADDED(event, unit)
         -- nameplate.NugPlate.isNamePlate = true
     end
 
+    local frame = nameplate.NugPlate -- our root custom nameplate frame
+
     local isAttackable = UnitCanAttack("player", unit)
     local isFriendly = UnitReaction(unit, "player") >= 4
     if not isAttackable and isFriendly then
-        -- names only
+        ToggleNameOnly(frame, true)
     else
-        -- full
+        ToggleNameOnly(frame, false)
     end
     --
     -- Update for fresh added unit
-
-    local frame = nameplate.NugPlate -- our root custom nameplate frame
 
     UpdateName(frame, unit)
     UpdateHealth(frame, unit)
