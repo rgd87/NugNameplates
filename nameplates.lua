@@ -361,6 +361,10 @@ UnitEventHandler:RegisterEvent('UNIT_NAME_UPDATE')
 local function UpdateName(frame, unit)
     local name = ns.GetCustomName(unit)
     frame.Name:SetText(name)
+
+    local guild = GetGuildInfo(unit)
+    if guild == 0 then guild = nil end
+    frame.GuildName:SetText(guild)
 end
 function UnitEventHandler:UNIT_NAME_UPDATE(event, unit)
     UpdateName(self, unit)
@@ -542,6 +546,7 @@ local function UpdateCastingInfo(self,name,texture,startTime,endTime,castID, not
 end
 
 local function CastStart(frame, unit)
+    if frame.NAME_ONLY then return end
     local castbar = frame.Castbar
     local name, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible, spellID = UnitCastingInfo(unit)
     castbar.channeling = false
@@ -555,6 +560,7 @@ end
 UnitEventHandler.UNIT_SPELLCAST_DELAYED = UnitEventHandler.UNIT_SPELLCAST_START
 
 local function ChannelStart(frame, unit)
+    if frame.NAME_ONLY then return end
     -- if unit ~= frame.unit then return end
     local castbar = frame.Castbar
     local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = UnitChannelInfo(unit)
@@ -562,7 +568,7 @@ local function ChannelStart(frame, unit)
     local castID = nil
     castbar.fadingStartTime = nil
     castbar:SetAlpha(1)
-    castbar:UpdateCastingInfo(name,texture,startTime,endTime, castID, notInterruptible, spellID)
+    UpdateCastingInfo(castbar, name,texture,startTime,endTime, castID, notInterruptible, spellID)
 end
 function UnitEventHandler:UNIT_SPELLCAST_CHANNEL_START(event,unit)
     ChannelStart(self, unit)
@@ -635,12 +641,22 @@ end
 
 
 local function ToggleNameOnly(frame, enable)
+    local nameFont = LSM:Fetch("font", NugNameplates.db.profile.nameFont)
     if enable then
-        frame.Name:SetScale(2)
+        frame.NAME_ONLY = true
+        frame.Name:SetFont(nameFont, 17, "OUTLINE")
+        frame.Name:SetPoint("BOTTOM", frame.Health, "TOP",0,-15)
+        frame.Name:SetShadowOffset(1,-1)
+        frame.GuildName:Show()
         frame.Health:Hide()
         frame.Castbar:Hide()
     else
-        frame.Name:SetScale(1)
+        frame.NAME_ONLY = false
+        -- frame.Name:SetScale(1)
+        frame.Name:SetFont(nameFont, 10, "OUTLINE")
+        frame.Name:SetPoint("BOTTOM", frame.Health, "TOP",0,1)
+        frame.Name:SetShadowOffset(0,0)
+        frame.GuildName:Hide()
         frame.Health:Show()
         frame.Castbar:Show()
     end
@@ -666,9 +682,10 @@ function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
 
     local frame = nameplate.NugPlate -- our root custom nameplate frame
 
+    local isPlayer = UnitIsPlayer(unit)
     local isAttackable = UnitCanAttack("player", unit)
     local isFriendly = UnitReaction(unit, "player") >= 4
-    if not isAttackable and isFriendly then
+    if isPlayer and not isAttackable and isFriendly then
         ToggleNameOnly(frame, true)
     else
         ToggleNameOnly(frame, false)
@@ -882,17 +899,22 @@ end
 
 function ns.GetCustomName(unit)
     if UnitIsPlayer(unit) then
+
+        local name = UnitName(unit)
         local _, instanceType = GetInstanceInfo()
         if instanceType == "arena" then
             for i=1,3 do
                 local arenaUnit = "arena"..i
                 if UnitIsUnit(unit, arenaUnit) then
-                    return tostring(i)
+                    name = tostring(i)
                 end
             end
         end
 
-        return UnitName(unit)
+        local _, class = UnitClass(unit)
+        local colorStr = RAID_CLASS_COLORS[class].colorStr
+
+        return string.format("|c%s%s|r", colorStr, name)
     else
         local reaction = UnitReaction(unit, "player")
         local npcID = GetUnitNPCID(unit)
@@ -903,11 +925,10 @@ function ns.GetCustomName(unit)
                 return lastWord
             end
         end
-
-        local isFriendly = reaction >= 4
-        if isFriendly then
-            return UnitName(unit)
-        end
+        -- local isFriendly = reaction >= 4
+        -- if isFriendly then
+        --     return UnitName(unit)
+        -- end
     end
     return ""
 end
@@ -1010,6 +1031,14 @@ function ns.SetupFrame(self, unit)
         unitName:SetPoint("BOTTOM", health, "TOP",0,1)
         -- self:Tag(unitName, '[customName]')
         self.Name = unitName
+
+        local guildName = self:CreateFontString();
+        guildName:SetFont(nameFont, 9, "OUTLINE")
+        guildName:SetJustifyH("CENTER")
+        guildName:SetTextColor(0.8,0.7,0.7)
+        guildName:SetPoint("TOP", unitName, "BOTTOM",0,-1)
+        -- self:Tag(guildName, '[customName]')
+        self.GuildName = guildName
 
         health.SetColor = function(element, r,g,b)
             element:SetStatusBarColor(r, g, b)
@@ -1466,7 +1495,7 @@ function ns.SetupFrame(self, unit)
         end
 
 
-        local raidicon = self.Health:CreateTexture(nil, "OVERLAY")
+        local raidicon = self:CreateTexture(nil, "OVERLAY")
         raidicon:SetHeight(26)
         raidicon:SetWidth(26)
         raidicon:Hide()
