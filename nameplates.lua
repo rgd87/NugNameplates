@@ -346,6 +346,33 @@ UnitEventHandler:RegisterEvent('UNIT_FACTION')
 -- if(element.colorThreat) then
 UnitEventHandler:RegisterEvent('UNIT_THREAT_LIST_UPDATE')
 
+
+
+UnitEventHandler:RegisterEvent('UNIT_ABSORB_AMOUNT_CHANGED')
+local function UpdateAbsorb(frame, unit)
+    local absorb = UnitGetTotalAbsorbs(unit) or 0
+    local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)
+
+    local absorbBar = frame.Health.absorb
+    absorbBar:Update(absorb, health, maxHealth)
+end
+function UnitEventHandler:UNIT_ABSORB_AMOUNT_CHANGED(event, unit)
+    UpdateAbsorb(self, unit)
+end
+
+UnitEventHandler:RegisterEvent('UNIT_HEAL_ABSORB_AMOUNT_CHANGED')
+local function UpdateHealAbsorb(frame, unit)
+    local healAbsorb = UnitGetTotalHealAbsorbs(unit) or 0
+    local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)
+
+    local healAbsorbBar = frame.Health.healAbsorb
+    healAbsorbBar:Update(healAbsorb, health, maxHealth)
+end
+function UnitEventHandler:UNIT_HEAL_ABSORB_AMOUNT_CHANGED(event, unit)
+    UpdateHealAbsorb(self, unit)
+end
+
+
 local function UpdateHealthColor(frame, unit, cur, max)
     local parent = frame:GetParent()
 
@@ -407,6 +434,8 @@ end
 
 function UnitEventHandler:UNIT_HEALTH(event, unit)
     UpdateHealth(self, unit)
+    UpdateAbsorb(self, unit)
+    UpdateHealAbsorb(self, unit)
 end
 UnitEventHandler.UNIT_MAXHEALTH = UnitEventHandler.UNIT_HEALTH
 UnitEventHandler.UNIT_CONNECTION = UnitEventHandler.UNIT_HEALTH
@@ -473,7 +502,7 @@ local function UpdateCastingInfo(self,name,texture,startTime,endTime,castID, not
     if self.shield then
         if notInterruptible then
             self.shield:Show()
-            self:SetColor(colors.notInterruptible)
+            self:SetColor(unpack(colors.notInterruptible))
         else
             self.shield:Hide()
         end
@@ -608,6 +637,7 @@ function nameplateEventHandler:NAME_PLATE_UNIT_ADDED(event, unit)
     UpdateName(frame, unit)
     UpdateHealth(frame, unit)
     UpdateUnitCast(frame, unit)
+    UpdateRaidIcon(frame, unit)
 
     frame.npcID = GetUnitNPCID(unit)
 
@@ -1029,6 +1059,7 @@ function ns.SetupFrame(self, unit)
             end
             health.healAbsorb = healAbsorb
 
+            --[[
             self.HealthPrediction = {
                 -- myBar = myBar,
                 -- otherBar = otherBar,
@@ -1049,6 +1080,7 @@ function ns.SetupFrame(self, unit)
                     element.healAbsorbBar:Update(healAbsorb, health, maxHealth)
                 end,
             }
+            ]]
         end
 
         -----------------------
@@ -1267,6 +1299,9 @@ function ns.SetupFrame(self, unit)
 
             castbar.elapsed = 0
             castbar:SetScript("OnUpdate", CastOnUpdate)
+
+
+            castbar.shield = castbar:CreateTexture(nil, "ARTWORK")
 
 
             self.Castbar = castbar
