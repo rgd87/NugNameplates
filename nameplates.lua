@@ -328,12 +328,19 @@ NugNameplates:RegisterEvent("RAID_TARGET_UPDATE")
 local function UpdateRaidIcon(frame, unit)
     local index = GetRaidTargetIndex(unit)
     local raidicon = frame.RaidTargetIndicator
-	if(index) then
+    if(index) then
 		SetRaidTargetIconTexture(raidicon, index)
-		raidicon:Show()
+        raidicon:Show()
+        if index ~= raidicon.current then
+            if raidicon.anim:IsPlaying() then
+                raidicon.anim:Stop()
+            end
+            raidicon.anim:Play()
+        end
 	else
 		raidicon:Hide()
-	end
+    end
+    raidicon.current = index
 end
 function NugNameplates:RAID_TARGET_UPDATE(event)
     for unit, nameplate in pairs(unitNameplates) do
@@ -1543,13 +1550,34 @@ function ns.SetupFrame(self, unit)
         end
 
 
-        local raidicon = self:CreateTexture(nil, "OVERLAY")
-        raidicon:SetHeight(26)
-        raidicon:SetWidth(26)
-        raidicon:Hide()
-        raidicon:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
-        raidicon:SetPoint("LEFT", self.Health, "RIGHT",5,0)
-        self.RaidTargetIndicator = raidicon
+        do
+            local raidicon = self:CreateTexture(nil, "OVERLAY")
+            raidicon:SetHeight(26)
+            raidicon:SetWidth(26)
+            raidicon:Hide()
+            raidicon:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
+            raidicon:SetPoint("LEFT", self.Health, "RIGHT",5,0)
+            self.RaidTargetIndicator = raidicon
+
+            local ag = raidicon:CreateAnimationGroup()
+
+            local a1 = ag:CreateAnimation("Scale")
+            a1:SetOrigin("CENTER",0,0)
+            a1:SetFromScale(0.3, 0.3)
+            a1:SetToScale(1.2, 1.2)
+            a1:SetDuration(0.1)
+            a1:SetOrder(1)
+
+            local a2 = ag:CreateAnimation("Scale")
+            a2:SetOrigin("CENTER",0,0)
+            a2:SetFromScale(1, 1)
+            a2:SetToScale(1/1.2, 1/1.2)
+            a2:SetDuration(0.08)
+            a2:SetOrder(2)
+            raidicon.anim = ag
+        end
+
+
 end
 
 
