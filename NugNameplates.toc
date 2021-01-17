@@ -1,8 +1,7 @@
 ## Interface: 90001
 ## Author: d87
 ## Version: 1
-## Dependencies: oUF
-## OptionalDeps: LibAuraTypes
+## OptionalDeps: oUF, LibAuraTypes
 ## SavedVariables: NugNameplatesDB
 ## Notes: oUF nameplates
 ## Version: @project-version@
