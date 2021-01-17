@@ -16,10 +16,10 @@ local LSM = LibStub("LibSharedMedia-3.0")
 -- LSM:Register("font", "AlegreyaSans-Medium", [[Interface\AddOns\Nug\AlegreyaSans-Medium.ttf]],  GetLocale() ~= "enUS" and 15)
 
 local texture = "Interface\\BUTTONS\\WHITE8X8"
-local shieldTexture = "Interface\\AddOns\\oUF_NugNameplates\\shieldtex.tga"
-local barTexture = "Interface\\AddOns\\oUF_NugNameplates\\bar.tga"
+local shieldTexture = "Interface\\AddOns\\NugNameplates\\shieldtex.tga"
+local barTexture = "Interface\\AddOns\\NugNameplates\\bar.tga"
 local flat = "Interface\\BUTTONS\\WHITE8X8"
-local targetGlowTexture = "Interface\\AddOns\\oUF_NugNameplates\\target-glow.tga"
+local targetGlowTexture = "Interface\\AddOns\\NugNameplates\\target-glow.tga"
 
 local healthbar_width = 85
 local healthbar_height = 7
@@ -31,7 +31,7 @@ local hsv_shift = ns.hsv_shift
 local LibAuraTypes = LibStub("LibAuraTypes", true)
 local ROOT_PRIO = LibAuraTypes and LibAuraTypes.GetDebuffTypePriority("ROOT") or 0
 
-local font3 = [[Interface\AddOns\oUF_NugNameplates\fonts\AlegreyaSans-Medium.ttf]]
+local font3 = [[Interface\AddOns\NugNameplates\fonts\AlegreyaSans-Medium.ttf]]
 
 local UnitAffectingCombat = UnitAffectingCombat
 local UnitExists = UnitExists
@@ -804,7 +804,7 @@ local PostCreate = function (self, button, icons, index, debuff)
     local frameborder = MakeBorder(button, "Interface\\BUTTONS\\WHITE8X8", -border, -border, -border, -border, -2)
     frameborder:SetVertexColor(0,0,0,1)
     -- overlay:SetTexCoord(0,1,0,1)
-    -- overlay:SetTexture([[Interface\AddOns\oUF_NugNameplates\buffBorder]])
+    -- overlay:SetTexture([[Interface\AddOns\NugNameplates\buffBorder]])
     if not button.isDebuff then
         overlay:Show()
         overlay:SetVertexColor(0.6,0.6,0.6, 1)
@@ -997,7 +997,7 @@ function ns.SetupFrame(self, unit)
         -- health:SetPoint("LEFT")
         -- health:SetPoint("RIGHT")
         -- health:SetHeight(healthbar_height * 4)
-        -- health:SetStatusBarTexture("Interface\\AddOns\\oUF_NugNameplates\\barSoft")
+        -- health:SetStatusBarTexture("Interface\\AddOns\\NugNameplates\\barSoft")
         health.colorHealth = true
         health.colorReaction = true
         health.colorClass = true
@@ -1006,7 +1006,7 @@ function ns.SetupFrame(self, unit)
         health:SetAlpha(1)
 
         local spark = health:CreateTexture(nil, "OVERLAY")
-		spark:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\spark.tga")
+		spark:SetTexture("Interface\\AddOns\\NugNameplates\\spark.tga")
         spark:SetAlpha(0)
         spark:SetWidth(10)
         spark:SetHeight(pph)
@@ -1262,7 +1262,7 @@ function ns.SetupFrame(self, unit)
         health.bg = health:CreateTexture(nil, "BACKGROUND", nil, 1)
         health.bg:SetAllPoints(health)
         health.bg:SetTexture(texture)
-        -- health.bg:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\barSoft")
+        -- health.bg:SetTexture("Interface\\AddOns\\NugNameplates\\barSoft")
         health.bg.multiplier = 0.15
 
         self.Health.PostUpdate = PostUpdateHealth
@@ -1283,7 +1283,7 @@ function ns.SetupFrame(self, unit)
 
         local sizeMul = 1.60
         local borderCENTER = health:CreateTexture(nil, "BACKGROUND")
-        borderCENTER:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\SoftEdgeBG2")
+        borderCENTER:SetTexture("Interface\\AddOns\\NugNameplates\\SoftEdgeBG2")
         borderCENTER:SetVertexColor(0,0,0)
         borderCENTER:SetTexCoord(11/64, 53/64, 0, 1)
         borderCENTER:SetPoint("LEFT",0,0)
@@ -1291,7 +1291,7 @@ function ns.SetupFrame(self, unit)
         borderCENTER:SetHeight(pph*sizeMul)
 
         local borderLEFT = health:CreateTexture(nil, "BACKGROUND")
-        borderLEFT:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\SoftEdgeBG2")
+        borderLEFT:SetTexture("Interface\\AddOns\\NugNameplates\\SoftEdgeBG2")
         borderLEFT:SetVertexColor(0,0,0)
         borderLEFT:SetTexCoord(0/64, 11/64, 0, 1)
         borderLEFT:SetPoint("RIGHT", borderCENTER, "LEFT", 0,0)
@@ -1299,7 +1299,7 @@ function ns.SetupFrame(self, unit)
         borderLEFT:SetHeight(pph*sizeMul)
 
         local borderRIGHT = health:CreateTexture(nil, "BACKGROUND")
-        borderRIGHT:SetTexture("Interface\\AddOns\\oUF_NugNameplates\\SoftEdgeBG2")
+        borderRIGHT:SetTexture("Interface\\AddOns\\NugNameplates\\SoftEdgeBG2")
         borderRIGHT:SetVertexColor(0,0,0)
         borderRIGHT:SetTexCoord(53/64, 64/64, 0, 1)
         borderRIGHT:SetPoint("LEFT", borderCENTER, "RIGHT", 0,0)
@@ -1553,6 +1553,6 @@ function ns.SetupFrame(self, unit)
 end
 
 
--- oUF:RegisterStyle("oUF_NugNameplates", ns.oUF_NugNameplates)
--- oUF:SetActiveStyle"oUF_NugNameplates"
+-- oUF:RegisterStyle("NugNameplates", ns.NugNameplates)
+-- oUF:SetActiveStyle"NugNameplates"
 -- oUF:SpawnNamePlates("oUF_Nameplate", ns.NameplateCallback)
