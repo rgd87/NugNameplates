@@ -370,6 +370,24 @@ function UnitEventHandler:UNIT_NAME_UPDATE(event, unit)
     UpdateName(self, unit)
 end
 
+UnitEventHandler:RegisterEvent('UNIT_AURA')
+local function UpdateAuras(frame, unit)
+    if frame.NAME_ONLY then return end
+
+    if not UnitIsPlayer(unit) then -- hide buffs on players
+        frame.Buffs:Show()
+        frame.Buffs:Update(unit)
+    else
+        frame.Buffs:Hide()
+        frame.Buffs.cur = 0
+    end
+
+    frame.Debuffs:Update(unit)
+end
+function UnitEventHandler:UNIT_AURA(event, unit)
+    UpdateAuras(self, unit)
+end
+
 -- Health
 UnitEventHandler:RegisterEvent('UNIT_HEALTH')
 UnitEventHandler:RegisterEvent('UNIT_MAXHEALTH')
@@ -650,6 +668,8 @@ local function ToggleNameOnly(frame, enable)
         frame.GuildName:Show()
         frame.Health:Hide()
         frame.Castbar:Hide()
+        frame.Buffs:Hide()
+        frame.Debuffs:Hide()
     else
         frame.NAME_ONLY = false
         -- frame.Name:SetScale(1)
@@ -659,6 +679,8 @@ local function ToggleNameOnly(frame, enable)
         frame.GuildName:Hide()
         frame.Health:Show()
         frame.Castbar:Show()
+        frame.Buffs:Show()
+        frame.Debuffs:Show()
     end
 end
 
@@ -697,6 +719,7 @@ function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
     UpdateHealth(frame, unit)
     UpdateUnitCast(frame, unit)
     UpdateRaidIcon(frame, unit)
+    UpdateAuras(frame, unit)
 
     frame.npcID = GetUnitNPCID(unit)
 
@@ -884,12 +907,12 @@ local BuffsPurgeableFilter = function(element, unit, button, name, texture,
 end
 
 
-local defaultUIFilter = function(element, unit, button, name, texture,
-    count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID,
-    canApply, isBossDebuff, casterIsPlayer, nameplateShowAll)
+local defaultUIFilter = function(name, icon, count, debuffType, duration, expirationTime, caster, isStealable,
+    nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, castByPlayer,
+    nameplateShowAll)
 
     return nameplateShowAll or
-		   (nameplateShowSelf and (caster == "player" or caster == "pet" or caster == "vehicle"));
+		   (nameplateShowPersonal and (caster == "player" or caster == "pet" or caster == "vehicle"));
 end
 
 -- oUF.Tags.Events["customName"] = "UNIT_NAME_UPDATE"
@@ -938,6 +961,7 @@ local function pixelperfect(val, region)
     region = region or UIParent
     return PixelUtil.GetNearestPixelSize(val, region:GetEffectiveScale(), val)
 end
+ns.pixelperfect = pixelperfect
 
 
 function ns.SetupFrame(self, unit)
@@ -1385,6 +1409,28 @@ function ns.SetupFrame(self, unit)
             self.Castbar = castbar
         -- end
 
+        local buffs = ns.AuraHeader:Create("$parentBuffs", self, "HELPFUL", 3)
+        buffs:SetIconSize(pixelperfect(17), pixelperfect(17*0.7))
+        buffs:SetAttachPoints("BOTTOMRIGHT", "BOTTOMLEFT", -3)
+        buffs:SetSize(healthbar_width, 30)
+        buffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, 5)
+
+        local debuffs = ns.AuraHeader:Create("$parentDebuffs", self, "HARMFUL|INCLUDE_NAME_PLATE_ONLY", 5)
+        debuffs:SetIconSize(pixelperfect(17), pixelperfect(17*0.7))
+        debuffs:SetAuraFilter(defaultUIFilter)
+        debuffs:SetAttachPoints("BOTTOMLEFT", "BOTTOMRIGHT", 3)
+        debuffs:SetSize(healthbar_width, 30)
+        debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, 5)
+
+        debuffs:SetMasterHeader(buffs)
+
+        self.Buffs = buffs
+        self.Debuffs = debuffs
+
+
+
+
+        --[==[
         -- Debuffs
         local debuffs = CreateFrame("Frame", "$parentDebuffs", self)
         debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0,-4)
@@ -1447,6 +1493,8 @@ function ns.SetupFrame(self, unit)
 
             self.Buffs = buffs
         end
+
+        --]==]
 
         --[===[
         -- all buffs
