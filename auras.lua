@@ -150,6 +150,7 @@ function AuraHeader:Update(unit)
                 self.icons[shown] = CreateIcon(self, self.icons[shown-1], self.width, self.height)
             end
             local aura = self.icons[shown]
+            aura:Show()
             aura:Fill(icon, count, debuffType, duration, expirationTime)
 
             shown = shown + 1
