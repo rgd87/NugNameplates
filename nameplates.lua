@@ -1272,7 +1272,7 @@ function ns.SetupFrame(self, unit)
         -- health.bg:SetTexture("Interface\\AddOns\\NugNameplates\\barSoft")
         health.bg.multiplier = 0.15
 
-        self.Health.PostUpdate = PostUpdateHealth
+        -- self.Health.PostUpdate = PostUpdateHealth
         self.Health.UpdateColor = function(frame, event, unit)
             local element = frame.Health
             local cur, max = UnitHealth(unit), UnitHealthMax(unit)
