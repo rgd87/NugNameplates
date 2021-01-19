@@ -63,6 +63,7 @@ local importantNPC3 = { hsv_shift(healthColor, 0.1, 0, 0.0) }
 local gtfo = { 1, 0.8, 0.8 }
 local MPlusAffix = { 0.8, 0.4, 0 }
 local garbage = {0.4, 0.4, 0.4}
+
 local colors = setmetatable({
     -- health = { .7, 0.2, 0.1},
     health = healthColor,
@@ -74,8 +75,7 @@ local colors = setmetatable({
     notInterruptible = {0.7, 0.7, 0.7},
     casting = {1, 0.65, 0},
     channeling = {0.8, 1, 0.3},
-}, {__index = oUF.colors})
-ns.colors = colors
+}, {__index = ns.colors})
 
 local defaults = {
     profile = {
@@ -1272,7 +1272,7 @@ function ns.SetupFrame(self, unit)
         -- health.bg:SetTexture("Interface\\AddOns\\NugNameplates\\barSoft")
         health.bg.multiplier = 0.15
 
-        self.Health.PostUpdate = PostUpdateHealth
+        -- self.Health.PostUpdate = PostUpdateHealth
         self.Health.UpdateColor = function(frame, event, unit)
             local element = frame.Health
             local cur, max = UnitHealth(unit), UnitHealthMax(unit)
