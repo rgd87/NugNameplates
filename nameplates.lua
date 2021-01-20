@@ -47,7 +47,6 @@ local UnitIsFriend = UnitIsFriend
 local GetTime = GetTime
 local UnitGUID = UnitGUID
 local C_NamePlate = C_NamePlate
-local oUF = oUF
 local UnitClass = UnitClass
 local UnitIsTapDenied = UnitIsTapDenied
 local UnitReaction = UnitReaction
@@ -443,8 +442,6 @@ local function UpdateHealthColor(frame, unit, cur, max)
 
     local npcID = frame["npcID"]
     local npcColor = npc_colors[npcID]
-
-    local colors = ns.colors
 
 	local r, g, b, t
 	if(health.colorTapping and not UnitPlayerControlled(unit) and UnitIsTapDenied(unit)) then

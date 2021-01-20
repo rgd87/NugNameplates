@@ -42,10 +42,15 @@ local function UpdateFontStringSettings(text, fontName, fontSize, effect)
     text:SetFont(font, fontSize, flags)
 end
 
-local function FillIcon(f, icon, count, debuffType, duration, expirationTime)
+local function FillIcon(f, icon, count, debuffType, duration, expirationTime, isStealable)
     f.icon:SetTexture(icon)
     f.stacktext:SetText(count > 1 and count)
     f.cooldown:SetCooldown(expirationTime-duration, duration)
+    if isStealable then
+        f.dispel:Show()
+    else
+        f.dispel:Hide()
+    end
 end
 
 local function CreateIcon(parent, prev, width, height)
@@ -74,6 +79,14 @@ local function CreateIcon(parent, prev, width, height)
     cd:SetReverse(true)
     cd:SetDrawEdge(false)
     cd:SetAllPoints()
+
+    local dispelAlert = f:CreateTexture(nil, "ARTWORK", nil, 3)
+    dispelAlert:SetAtlas("hud-microbutton-highlightalert")
+    dispelAlert:SetPoint("CENTER",0,0)
+    dispelAlert:SetSize(width, height)
+    dispelAlert:SetScale(1.6)
+    dispelAlert:Hide()
+    f.dispel = dispelAlert
 
     local stacktext = AddStackText(f, f)
     UpdateFontStringSettings(stacktext, "ClearFont", 10, "OUTLINE")
@@ -151,7 +164,7 @@ function AuraHeader:Update(unit)
             end
             local aura = self.icons[shown]
             aura:Show()
-            aura:Fill(icon, count, debuffType, duration, expirationTime)
+            aura:Fill(icon, count, debuffType, duration, expirationTime, isStealable)
 
             shown = shown + 1
         end
