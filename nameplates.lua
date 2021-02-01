@@ -84,6 +84,7 @@ local defaults = {
 
 
 NugNameplates:RegisterEvent("PLAYER_TARGET_CHANGED")
+NugNameplates:RegisterEvent("PLAYER_FOCUS_CHANGED")
 NugNameplates:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 NugNameplates:RegisterEvent("NAME_PLATE_UNIT_ADDED")
 NugNameplates:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
@@ -270,11 +271,12 @@ local nonTargeAlpha = 0.6
 
 function NugNameplates:PLAYER_TARGET_CHANGED(event)
     local targetFrame = C_NamePlate.GetNamePlateForUnit("target")
+    local focusFrame = C_NamePlate.GetNamePlateForUnit("focus")
     local mouseoverFrame = C_NamePlate.GetNamePlateForUnit("mouseover")
     local playerFrame = C_NamePlate.GetNamePlateForUnit("player")
     for _, frame in pairs(C_NamePlate.GetNamePlates()) do
         if frame ~= playerFrame then
-            if frame == targetFrame or not UnitExists("target") then
+            if frame == targetFrame or frame == focusFrame or not UnitExists("target") then
                 if frame.NugPlate then
                     frame.NugPlate:SetAlpha(1)
                     frame.NugPlate.Health.highlight:Hide()
@@ -284,6 +286,12 @@ function NugNameplates:PLAYER_TARGET_CHANGED(event)
                     else
                         frame.NugPlate.TargetGlow:Hide()
                     end
+
+                    if frame == focusFrame then
+                        frame.NugPlate.FocusGlow:Show()
+                    else
+                        frame.NugPlate.FocusGlow:Hide()
+                    end
                 end
             else
                 if frame.NugPlate then
@@ -291,6 +299,7 @@ function NugNameplates:PLAYER_TARGET_CHANGED(event)
                     frame.NugPlate.Health.highlight:Hide()
                     -- frame.NugPlate.Health.lost:Hide()
                     frame.NugPlate.TargetGlow:Hide()
+                    frame.NugPlate.FocusGlow:Hide()
                 end
             end
 
@@ -307,6 +316,7 @@ function NugNameplates:PLAYER_TARGET_CHANGED(event)
 	end
 end
 NugNameplates.UPDATE_MOUSEOVER_UNIT = NugNameplates.PLAYER_TARGET_CHANGED
+NugNameplates.PLAYER_FOCUS_CHANGED = NugNameplates.PLAYER_TARGET_CHANGED
 
 local function GetUnitNPCID(unit)
     local guid = UnitGUID(unit)
@@ -1327,6 +1337,27 @@ function ns.SetupFrame(self, unit)
         targetGlow:SetTexture(targetGlowTexture)
         targetGlow:Hide()
         self.TargetGlow = targetGlow
+
+        -- local focusGlow = CreateFrame("Frame", nil, self, "BackdropTemplate")
+        -- focusGlow:SetFrameLevel(health:GetFrameLevel()-1)
+        -- local border_backdrop = {
+        --     edgeFile = "Interface\\Addons\\NugNameplates\\glow", tileEdge = true, edgeSize = 6,
+        -- }
+        -- focusGlow:SetBackdrop(border_backdrop)
+
+        -- focusGlow:SetPoint("TOPLEFT", health, "TOPLEFT",-6,6)
+        -- focusGlow:SetPoint("BOTTOMRIGHT", health, "BOTTOMRIGHT",6,-6)
+        -- focusGlow:SetBackdropBorderColor(0.2, 0.2, 1, 1)
+        -- focusGlow:Hide()
+
+        local focusGlow = health:CreateTexture(nil, "ARTWORK", nil, 6)
+        focusGlow:SetAllPoints()
+        -- focusGlow:SetBlendMode("ADD")
+        -- focusGlow:SetHorizTile(true)
+        focusGlow:SetVertexColor(0,0,0, 0.35)
+        focusGlow:SetTexture("Interface\\Addons\\NugNameplates\\focusOverlay")
+        focusGlow:Hide()
+        self.FocusGlow = focusGlow
 
 
         -- if not isClassic then
