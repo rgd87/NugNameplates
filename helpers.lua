@@ -39,7 +39,7 @@ local function CondemnExecute()
     local isCondemn = IsPlayerSpell(317320) or IsPlayerSpell(317485) -- arms/prot, fury condemn
     local highT = isCondemn and 0.8 or 1
     return function(p, unit, cur, max)
-        return p < lowT or p > highT
+        return p < lowT or (p > highT and UnitAffectingCombat(unit))
     end
 end
 
