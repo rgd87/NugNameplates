@@ -508,7 +508,6 @@ end
 UnitEventHandler.UNIT_MAXHEALTH = UnitEventHandler.UNIT_HEALTH
 UnitEventHandler.UNIT_CONNECTION = UnitEventHandler.UNIT_HEALTH
 UnitEventHandler.UNIT_FLAGS = UnitEventHandler.UNIT_HEALTH
-UnitEventHandler.UNIT_FACTION = UnitEventHandler.UNIT_HEALTH
 UnitEventHandler.UNIT_THREAT_LIST_UPDATE = UnitEventHandler.UNIT_HEALTH
 
 
@@ -770,6 +769,9 @@ function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
     end
     ]]
 end
+
+-- if faction changes need to reinit nameplate
+UnitEventHandler.UNIT_FACTION = NugNameplates.NAME_PLATE_UNIT_ADDED
 
 function NugNameplates:NAME_PLATE_UNIT_REMOVED(event, unit)
     local nameplate = C_NamePlate.GetNamePlateForUnit(unit)

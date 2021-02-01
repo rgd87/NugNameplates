@@ -18,3 +18,4 @@ helpers.lua
 npc_names.lua
 nameplates.lua
 auras.lua
+quest.lua

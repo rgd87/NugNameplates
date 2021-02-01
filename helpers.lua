@@ -12,14 +12,15 @@ frame:RegisterEvent("SPELLS_CHANGED")
 
 
 
--- frame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
--- function frame:ZONE_CHANGED_NEW_AREA()
---     local _, instanceType = GetInstanceInfo()
---     if not InCombatLockdown() then
---         local val = instanceType == "none" and "0" or "1"
---         SetCVar("nameplateShowFriends", val)
---     end
--- end
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+function frame:PLAYER_ENTERING_WORLD()
+    local _, instanceType = GetInstanceInfo()
+    if not InCombatLockdown() then
+        local inPVEInstance = instanceType == "party" or instanceType == "raid"
+        local val = inPVEInstance and "0" or "1"
+        SetCVar("nameplateShowFriends", val)
+    end
+end
 
 local isClassic = select(4,GetBuildInfo()) <= 19999
 local GetSpecialization = isClassic and function() return 1 end or _G.GetSpecialization
