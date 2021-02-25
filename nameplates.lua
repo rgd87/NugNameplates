@@ -416,9 +416,11 @@ UnitEventHandler:RegisterEvent('UNIT_FACTION')
 -- if(element.colorThreat) then
 UnitEventHandler:RegisterEvent('UNIT_THREAT_LIST_UPDATE')
 
-
-
+if not isClassic then
 UnitEventHandler:RegisterEvent('UNIT_ABSORB_AMOUNT_CHANGED')
+end
+
+
 local function UpdateAbsorb(frame, unit)
     local absorb = UnitGetTotalAbsorbs(unit) or 0
     local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)
@@ -430,7 +432,9 @@ function UnitEventHandler:UNIT_ABSORB_AMOUNT_CHANGED(event, unit)
     UpdateAbsorb(self, unit)
 end
 
+if not isClassic then
 UnitEventHandler:RegisterEvent('UNIT_HEAL_ABSORB_AMOUNT_CHANGED')
+end
 local function UpdateHealAbsorb(frame, unit)
     local healAbsorb = UnitGetTotalHealAbsorbs(unit) or 0
     local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)
@@ -502,8 +506,10 @@ end
 
 function UnitEventHandler:UNIT_HEALTH(event, unit)
     UpdateHealth(self, unit)
+    if not isClassic then
     UpdateAbsorb(self, unit)
     UpdateHealAbsorb(self, unit)
+    end
 end
 UnitEventHandler.UNIT_MAXHEALTH = UnitEventHandler.UNIT_HEALTH
 UnitEventHandler.UNIT_CONNECTION = UnitEventHandler.UNIT_HEALTH
@@ -521,8 +527,10 @@ UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
+if not isClassic then
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
+end
 
 
 local CastOnUpdate = function(self, elapsed)
@@ -574,6 +582,11 @@ local function UpdateCastingInfo(self,name,texture,startTime,endTime,castID, not
             self.shield:Hide()
         end
     end
+end
+
+if isClassic then
+    UnitCastingInfo = CastingInfo
+    UnitChannelInfo = ChannelInfo
 end
 
 local function CastStart(frame, unit)
@@ -730,6 +743,10 @@ function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
 
     UpdateName(frame, unit)
     UpdateHealth(frame, unit)
+    if not isClassic then
+    UpdateAbsorb(frame, unit)
+    UpdateHealAbsorb(frame, unit)
+    end
     UpdateUnitCast(frame, unit)
     UpdateRaidIcon(frame, unit)
     UpdateAuras(frame, unit)

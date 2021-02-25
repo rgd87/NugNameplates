@@ -311,9 +311,10 @@ for power, color in next, PowerBarColor do
 	end
 end
 
-
+if GetThreatStatusColor then
 for i = 0, 3 do
 	colors.threat[i] = {GetThreatStatusColor(i)}
+end
 end
 
 -- sourced from FrameXML/Constants.lua

@@ -127,8 +127,12 @@ globals = {
     "UnitIsConnected",
     "UnitCastingInfo",
     "UnitChannelInfo",
+    "CastingInfo", -- Classic
+    "ChannelInfo", -- Classic
     "UnitCanAttack",
     "UnitName",
     "GetInstanceInfo",
     "PostUpdateHealth",
+    "InCombatLockdown",
+    "SetCVar",
 }
