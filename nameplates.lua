@@ -88,6 +88,7 @@ NugNameplates:RegisterEvent("PLAYER_FOCUS_CHANGED")
 NugNameplates:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 NugNameplates:RegisterEvent("NAME_PLATE_UNIT_ADDED")
 NugNameplates:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
+NugNameplates:RegisterEvent("QUEST_LOG_UPDATE")
 
 function NugNameplates:ADDON_LOADED(event, loadedName)
     if loadedName ~= addonName then return end
@@ -265,6 +266,12 @@ end
 
 
 local unitNameplates = {}
+
+function NugNameplates:ForEachNameplate(func)
+    for unit, nameplate in pairs(unitNameplates) do
+        func(nameplate.NugPlate, unit)
+    end
+end
 
 local nonTargeAlpha = 0.6
 -- local mouseoverAlpha = 0.7
@@ -710,6 +717,16 @@ local function ToggleNameOnly(frame, enable)
     end
 end
 
+local function UpdateQuestStatus(frame, unit)
+    if NugNameplates:IsQuestUnit(unit) then
+        frame.questIcon:Show()
+    else
+        frame.questIcon:Hide()
+    end
+end
+function NugNameplates:QUEST_LOG_UPDATE(event, unit)
+    self:ForEachNameplate(UpdateQuestStatus)
+end
 
 function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
     local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
@@ -746,6 +763,7 @@ function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
     if not isClassic then
     UpdateAbsorb(frame, unit)
     UpdateHealAbsorb(frame, unit)
+    UpdateQuestStatus(frame, unit)
     end
     UpdateUnitCast(frame, unit)
     UpdateRaidIcon(frame, unit)
@@ -1377,6 +1395,13 @@ function ns.SetupFrame(self, unit)
         focusGlow:SetTexture("Interface\\Addons\\NugNameplates\\focusOverlay")
         focusGlow:Hide()
         self.FocusGlow = focusGlow
+
+        local questIcon = health:CreateTexture(nil, "ARTWORK", nil, -3)
+        questIcon:SetAtlas("questnormal")
+        questIcon:SetPoint("RIGHT", health, "LEFT", 0, 0)
+        questIcon:SetSize(16, 16)
+        questIcon:Hide()
+        self.questIcon = questIcon
 
 
         -- if not isClassic then
