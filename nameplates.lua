@@ -8,7 +8,10 @@ NugNameplates:SetScript("OnEvent", function(self, event, ...)
     return self[event](self, event, ...)
 end)
 
-local isClassic = select(4,GetBuildInfo()) <= 19999
+local apiLevel = math.floor(select(4,GetBuildInfo())/10000)
+local isClassic = apiLevel <= 2
+local isBC = apiLevel == 2
+local isMainline = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE -- WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 local filterOwnSpells = false
 
 local LSM = LibStub("LibSharedMedia-3.0")
@@ -110,7 +113,7 @@ end
 
 
 local npc_colors
-if not isClassic then
+if isMainline then
     npc_colors = {
         [174773] = MPlusAffix, -- Spiteful Shade, Spiteful M+ Affix
 
@@ -423,7 +426,7 @@ UnitEventHandler:RegisterEvent('UNIT_FACTION')
 -- if(element.colorThreat) then
 UnitEventHandler:RegisterEvent('UNIT_THREAT_LIST_UPDATE')
 
-if not isClassic then
+if isMainline then
 UnitEventHandler:RegisterEvent('UNIT_ABSORB_AMOUNT_CHANGED')
 end
 
@@ -439,7 +442,7 @@ function UnitEventHandler:UNIT_ABSORB_AMOUNT_CHANGED(event, unit)
     UpdateAbsorb(self, unit)
 end
 
-if not isClassic then
+if isMainline then
 UnitEventHandler:RegisterEvent('UNIT_HEAL_ABSORB_AMOUNT_CHANGED')
 end
 local function UpdateHealAbsorb(frame, unit)
@@ -513,7 +516,7 @@ end
 
 function UnitEventHandler:UNIT_HEALTH(event, unit)
     UpdateHealth(self, unit)
-    if not isClassic then
+    if isMainline then
     UpdateAbsorb(self, unit)
     UpdateHealAbsorb(self, unit)
     end
@@ -534,7 +537,7 @@ UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
-if not isClassic then
+if apiLevel >= 3 then
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
 end
@@ -591,7 +594,7 @@ local function UpdateCastingInfo(self,name,texture,startTime,endTime,castID, not
     end
 end
 
-if isClassic then
+if apiLevel == 1 then
     UnitCastingInfo = CastingInfo
     UnitChannelInfo = ChannelInfo
 end
@@ -760,7 +763,7 @@ function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
 
     UpdateName(frame, unit)
     UpdateHealth(frame, unit)
-    if not isClassic then
+    if isMainline then
     UpdateAbsorb(frame, unit)
     UpdateHealAbsorb(frame, unit)
     UpdateQuestStatus(frame, unit)
@@ -863,27 +866,6 @@ local PostCreate = function (self, button, icons, index, debuff)
     end
 end
 
-if isClassic then
-    SpecialThreatStatus = function(unit)
-        if not UnitAffectingCombat(unit) then return nil end
-
-        local unitTarget = unit.."target"
-
-        if not UnitExists(unitTarget) then return nil end
-
-        local isPlayerUnitTarget = UnitIsUnit(unitTarget, "player")
-
-        local threatStatus = nil
-        if isPlayerTanking and not isPlayerUnitTarget then
-            threatStatus = "aggro_lost"
-        -- elseif not isPlayerTanking and isPlayerUnitTarget then
-        --     threatStatus = "aggro_lost"
-        end
-
-        return threatStatus
-    end
-    UnitEngaged = UnitAffectingCombat
-else
     SpecialThreatStatus = function(unit)
         -- if unit == 'player' or UnitIsUnit('player',unit) then return end
 
@@ -935,7 +917,6 @@ else
     UnitEngaged = function(unit)
         return UnitThreatSituation("player", unit)
     end
-end
 
 local CustomNameplateDebuffFilter = function(element, unit, button, name, texture,
     count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID,
@@ -1133,7 +1114,7 @@ function ns.SetupFrame(self, unit)
             end
         end
 
-        if not isClassic then
+        if isMainline then
             -----------------
             -- ABSORB BAR
             -----------------
@@ -1611,15 +1592,8 @@ function ns.SetupFrame(self, unit)
             self.Health:ForceUpdate()
         end
 
-        if isClassic then
-            self:RegisterEvent("UNIT_TARGET", OnHealthEvent)
-            -- self:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
-            -- frame.UPDATE_SHAPESHIFT_FORM = function(self)
-            --     ns.UpdateTankingStatus(ns.IsTanking(class))
-            -- end
-        else
-            self:RegisterEvent("UNIT_THREAT_SITUATION_UPDATE", OnHealthEvent)
-        end
+
+        self:RegisterEvent("UNIT_THREAT_SITUATION_UPDATE", OnHealthEvent)
 
 
         do

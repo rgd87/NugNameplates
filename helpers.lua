@@ -22,7 +22,11 @@ function frame:PLAYER_ENTERING_WORLD()
     end
 end
 
-local isClassic = select(4,GetBuildInfo()) <= 19999
+local apiLevel = math.floor(select(4,GetBuildInfo())/10000)
+local isClassic = apiLevel <= 3
+local isBC = apiLevel == 2
+local isMainline = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE -- WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
 local GetSpecialization = isClassic and function() return 1 end or _G.GetSpecialization
 
 local ranges
