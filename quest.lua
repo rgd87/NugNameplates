@@ -39,7 +39,7 @@ function NugNameplates:IsQuestUnit(unit)
         if not text then break end
 
         -- quest progress text is indented, so...
-        if floor((select(4,line:GetPoint(2)) or 0)+0.5) == 28 then
+        if math.floor((select(4,line:GetPoint(2)) or 0)+0.5) == 28 then
             match = matchProgress(text)
             if match then break end
         end

@@ -996,6 +996,16 @@ end
 ns.pixelperfect = pixelperfect
 
 
+local function MakeCompatibleAnimation(anim)
+    if anim:GetObjectType() == "Scale" and anim.SetScaleFrom then
+        return anim
+    else
+        anim.SetScaleFrom = anim.SetFromScale
+        anim.SetScaleTo = anim.SetToScale
+    end
+    return anim
+end
+
 function ns.SetupFrame(self, unit)
 
         -- local healthbar_width = 85
@@ -1465,6 +1475,8 @@ function ns.SetupFrame(self, unit)
 
             castbar.shield = castbar:CreateTexture(nil, "ARTWORK")
 
+            castbar.startTime = 0
+
 
             self.Castbar = castbar
         -- end
@@ -1607,17 +1619,17 @@ function ns.SetupFrame(self, unit)
 
             local ag = raidicon:CreateAnimationGroup()
 
-            local a1 = ag:CreateAnimation("Scale")
+            local a1 = MakeCompatibleAnimation(ag:CreateAnimation("Scale"))
             a1:SetOrigin("CENTER",0,0)
-            a1:SetFromScale(0.3, 0.3)
-            a1:SetToScale(1.2, 1.2)
+            a1:SetScaleFrom(0.3, 0.3)
+            a1:SetScaleTo(1.2, 1.2)
             a1:SetDuration(0.1)
             a1:SetOrder(1)
 
-            local a2 = ag:CreateAnimation("Scale")
+            local a2 = MakeCompatibleAnimation(ag:CreateAnimation("Scale"))
             a2:SetOrigin("CENTER",0,0)
-            a2:SetFromScale(1, 1)
-            a2:SetToScale(1/1.2, 1/1.2)
+            a2:SetScaleFrom(1, 1)
+            a2:SetScaleTo(1/1.2, 1/1.2)
             a2:SetDuration(0.08)
             a2:SetOrder(2)
             raidicon.anim = ag

@@ -44,7 +44,7 @@ end
 
 local function FillIcon(f, icon, count, debuffType, duration, expirationTime, isStealable)
     f.icon:SetTexture(icon)
-    f.stacktext:SetText(count > 1 and count)
+    f.stacktext:SetText(count > 1 and count or "")
     f.cooldown:SetCooldown(expirationTime-duration, duration)
     if isStealable then
         f.dispel:Show()
