@@ -537,7 +537,7 @@ UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
-if apiLevel >= 3 then
+if apiLevel >= 4 then
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
 end
