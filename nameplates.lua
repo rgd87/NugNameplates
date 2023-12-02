@@ -594,10 +594,6 @@ local function UpdateCastingInfo(self,name,texture,startTime,endTime,castID, not
     end
 end
 
-if apiLevel == 1 then
-    UnitCastingInfo = CastingInfo
-    UnitChannelInfo = ChannelInfo
-end
 
 local function CastStart(frame, unit)
     if frame.NAME_ONLY then return end
