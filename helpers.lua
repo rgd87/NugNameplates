@@ -306,9 +306,11 @@ for power, color in next, PowerBarColor do
 		if(type(select(2, next(color))) == 'table') then
 			colors.power[power] = {}
 
-			for index, color in next, color do
-				colors.power[power][index] = {color.r, color.g, color.b}
-			end
+            colors.power[power] = {color.r, color.g, color.b}
+			-- for index, color in next, color do
+                -- print(index, color)
+				-- colors.power[power][index] = {color.r, color.g, color.b}
+			-- end
 		else
 			colors.power[power] = {color.r, color.g, color.b, atlas = color.atlas}
 		end
