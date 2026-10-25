@@ -12,7 +12,6 @@ externals:
   Libs/AceGUI-3.0: https://repos.wowace.com/wow/ace3/trunk/AceGUI-3.0
   Libs/AceConfig-3.0: https://repos.wowace.com/wow/ace3/trunk/AceConfig-3.0
   Libs/LibSharedMedia-3.0: https://repos.wowace.com/wow/libsharedmedia-3-0/trunk/LibSharedMedia-3.0
-  Libs/LibAuraTypes: https://github.com/rgd87/LibAuraTypes.git
 
 ignore:
   - texture5.psd

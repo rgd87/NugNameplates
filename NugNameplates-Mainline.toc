@@ -1,0 +1,20 @@
+## Interface: 120105
+## Author: d87
+## Version: 2
+## OptionalDeps: LibAuraTypes
+## SavedVariables: NugNameplatesDB
+## Notes: oUF nameplates
+## Version: @project-version@
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\AceDB-3.0\AceDB-3.0.xml
+Libs\AceGUI-3.0\AceGUI-3.0.xml
+Libs\AceConfig-3.0\AceConfig-3.0.xml
+Libs\LibSharedMedia-3.0\lib.xml
+
+helpers.lua
+npc_names.lua
+nameplates.lua
+auras.lua
+quest.lua

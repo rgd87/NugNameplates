@@ -370,7 +370,6 @@ end
 
 local NugPlate = {}
 
--- TODO: Raid Icons, heal absorb and absorb
 local UnitEventHandler = CreateFrame("Frame", nil, UIParent)
 
 UnitEventHandler:SetScript("OnEvent", function(self, event, unit, ...)
@@ -385,7 +384,8 @@ end)
 UnitEventHandler:RegisterEvent('UNIT_NAME_UPDATE')
 
 local function UpdateName(frame, unit)
-    local name = ns.GetCustomName(unit)
+    -- local name = ns.GetCustomName(unit)
+    local name = UnitName(unit)
     frame.Name:SetText(name)
 
     local guild = GetGuildInfo(unit)
@@ -396,23 +396,16 @@ function UnitEventHandler:UNIT_NAME_UPDATE(event, unit)
     UpdateName(self, unit)
 end
 
-UnitEventHandler:RegisterEvent('UNIT_AURA')
+
+-- UnitEventHandler:RegisterEvent('UNIT_AURA')
 local function UpdateAuras(frame, unit)
-    if frame.NAME_ONLY then return end
 
-    if not UnitIsPlayer(unit) then -- hide buffs on players
-        frame.Buffs:Show()
-        frame.Buffs:Update(unit)
-    else
-        frame.Buffs:Hide()
-        frame.Buffs.cur = 0
-    end
-
-    frame.Debuffs:Update(unit)
 end
+--[[
 function UnitEventHandler:UNIT_AURA(event, unit)
     UpdateAuras(self, unit)
 end
+]]
 
 -- Health
 UnitEventHandler:RegisterEvent('UNIT_HEALTH')
@@ -426,31 +419,23 @@ UnitEventHandler:RegisterEvent('UNIT_FACTION')
 -- if(element.colorThreat) then
 UnitEventHandler:RegisterEvent('UNIT_THREAT_LIST_UPDATE')
 
-if isMainline then
 UnitEventHandler:RegisterEvent('UNIT_ABSORB_AMOUNT_CHANGED')
-end
-
-
 local function UpdateAbsorb(frame, unit)
     local absorb = UnitGetTotalAbsorbs(unit) or 0
-    local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)
 
     local absorbBar = frame.Health.absorb
-    absorbBar:Update(absorb, health, maxHealth)
+    absorbBar:SetValue(absorb)
 end
 function UnitEventHandler:UNIT_ABSORB_AMOUNT_CHANGED(event, unit)
     UpdateAbsorb(self, unit)
 end
 
-if isMainline then
 UnitEventHandler:RegisterEvent('UNIT_HEAL_ABSORB_AMOUNT_CHANGED')
-end
 local function UpdateHealAbsorb(frame, unit)
     local healAbsorb = UnitGetTotalHealAbsorbs(unit) or 0
-    local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)
 
     local healAbsorbBar = frame.Health.healAbsorb
-    healAbsorbBar:Update(healAbsorb, health, maxHealth)
+    healAbsorbBar:SetValue(healAbsorb)
 end
 function UnitEventHandler:UNIT_HEAL_ABSORB_AMOUNT_CHANGED(event, unit)
     UpdateHealAbsorb(self, unit)
@@ -464,8 +449,8 @@ local function UpdateHealthColor(frame, unit, cur, max)
     local reaction = UnitReaction(unit, 'player')
     local health = frame.Health
 
-    local npcID = frame["npcID"]
-    local npcColor = npc_colors[npcID]
+    -- local npcID = frame["npcID"]
+    -- local npcColor = npc_colors[npcID]
 
 	local r, g, b, t
 	if(health.colorTapping and not UnitPlayerControlled(unit) and UnitIsTapDenied(unit)) then
@@ -481,12 +466,12 @@ local function UpdateHealthColor(frame, unit, cur, max)
 
     elseif not UnitIsPlayer(unit) and sts then
         t = colors[sts]
-    elseif IsInExecuteRange and IsInExecuteRange(cur/max, unit, cur, max) then
-        t = colors.execute
+    -- elseif IsInExecuteRange and IsInExecuteRange(cur/max, unit, cur, max) then
+        -- t = colors.execute
     elseif(health.colorReaction and not UnitEngaged(unit, 'player') and reaction >= 4) then
         t = colors.reaction[reaction]
-    elseif npcColor then
-        t = npcColor
+    -- elseif npcColor then
+    --     t = npcColor
     elseif(health.colorHealth) then
 		t = colors.health
     end
@@ -500,6 +485,17 @@ local function UpdateHealthColor(frame, unit, cur, max)
     end
 end
 
+
+local function UpdateMaxHealth(frame, unit)
+    local hm = UnitHealthMax(unit)
+
+    local health = frame.Health
+    health:SetMinMaxValues(0, hm)
+    health.lost:SetMinMaxValues(0, hm)
+    health.absorb:SetMinMaxValues(0, hm)
+    health.healAbsorb:SetMinMaxValues(0, hm)
+end
+
 local function UpdateHealth(frame, unit)
     local cur, max = UnitHealth(unit), UnitHealthMax(unit)
     local health = frame.Health
@@ -511,17 +507,19 @@ local function UpdateHealth(frame, unit)
 		health:SetValue(max)
     end
 
+    health.lost:SetValue(0)
+
     UpdateHealthColor(frame, unit, cur, max)
 end
 
 function UnitEventHandler:UNIT_HEALTH(event, unit)
     UpdateHealth(self, unit)
-    if isMainline then
     UpdateAbsorb(self, unit)
     UpdateHealAbsorb(self, unit)
-    end
 end
-UnitEventHandler.UNIT_MAXHEALTH = UnitEventHandler.UNIT_HEALTH
+function UnitEventHandler:UNIT_MAXHEALTH(event, unit)
+    UpdateMaxHealth(self, unit)
+end
 UnitEventHandler.UNIT_CONNECTION = UnitEventHandler.UNIT_HEALTH
 UnitEventHandler.UNIT_FLAGS = UnitEventHandler.UNIT_HEALTH
 UnitEventHandler.UNIT_THREAT_LIST_UPDATE = UnitEventHandler.UNIT_HEALTH
@@ -537,45 +535,44 @@ UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
-if apiLevel >= 4 then
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
-end
 
 
-local CastOnUpdate = function(self, elapsed)
-    local v = self.elapsed + elapsed
-    local remains = self.endTime - (v+self.startTime)
-    self.elapsed = v
+-- local CastOnUpdate = function(self, elapsed)
+--     local v = self.elapsed + elapsed
+--     local remains = self.endTime - (v+self.startTime)
+--     self.elapsed = v
 
-    if self.fadingStartTime then
-        local t = GetTime() - self.fadingStartTime
-        local a = 4* math.max(0, 0.25 - t)
-        self:SetAlpha(a)
-        self:SetValue(self.endTime)
-        if a < 0 then
-            self:Hide()
-        end
-    else
-        local val
-        if self.channeling then val = self.startTime + remains
-        else val = self.endTime - remains end
-        self:SetValue(val)
-        -- self.timeText:SetFormattedText("%.1f",remains)
-        if remains <= -0.5 then
-            self:Hide()
-        end
-    end
-end
+--     if self.fadingStartTime then
+--         local t = GetTime() - self.fadingStartTime
+--         local a = 4* math.max(0, 0.25 - t)
+--         self:SetAlpha(a)
+--         self:SetValue(self.endTime)
+--         if a < 0 then
+--             self:Hide()
+--         end
+--     else
+--         local val
+--         if self.channeling then val = self.startTime + remains
+--         else val = self.endTime - remains end
+--         self:SetValue(val)
+--         -- self.timeText:SetFormattedText("%.1f",remains)
+--         if remains <= -0.5 then
+--             self:Hide()
+--         end
+--     end
+-- end
 
 local coloredSpells = {}
-local function UpdateCastingInfo(self,name,texture,startTime,endTime,castID, notInterruptible, spellID)
+local function UpdateCastingInfo(self,name,texture,startTime,duration,castID, notInterruptible, spellID)
     if not startTime then return end
     self.castID = castID
-    self.startTime = startTime / 1000
-    self.endTime = endTime / 1000
-    self:SetMinMaxValues(self.startTime, self.endTime)
-    self.elapsed = GetTime() - self.startTime
+    self:SetTimerDuration(duration)
+    -- self.startTime = startTime / 1000
+    -- self.endTime = endTime / 1000
+    -- self:SetMinMaxValues(self.startTime, self.endTime)
+    -- self.elapsed = GetTime() - self.startTime
     self.Icon:SetTexture(texture)
     self.Text:SetText(name)
 
@@ -598,11 +595,12 @@ end
 local function CastStart(frame, unit)
     if frame.NAME_ONLY then return end
     local castbar = frame.Castbar
-    local name, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible, spellID = UnitCastingInfo(unit)
+    local name, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible, spellID, castBarID, delayTimeMs = UnitCastingInfo(unit)
+    local duration = UnitCastingDuration(srcUnit)
     castbar.channeling = false
     castbar.fadingStartTime = nil
     castbar:SetAlpha(1)
-    UpdateCastingInfo(castbar, name,texture,startTime,endTime,castID, notInterruptible, spellID)
+    UpdateCastingInfo(castbar, name,texture,startTime,duration,castID, notInterruptible, spellID)
 end
 function UnitEventHandler:UNIT_SPELLCAST_START(event, unit, castID, spellID)
     CastStart(self, unit)
@@ -613,12 +611,18 @@ local function ChannelStart(frame, unit)
     if frame.NAME_ONLY then return end
     -- if unit ~= frame.unit then return end
     local castbar = frame.Castbar
-    local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = UnitChannelInfo(unit)
+    local name, text, texture, startTime, endTime, isTradeSkill,         notInterruptible, spellID, isEmpowered = UnitChannelInfo(unit)
+    local duration
+    if(isEmpowered) then
+        duration = UnitEmpoweredChannelDuration(unit)
+    else
+        duration = UnitChannelDuration(unit)
+    end
     castbar.channeling = true
     local castID = nil
     castbar.fadingStartTime = nil
     castbar:SetAlpha(1)
-    UpdateCastingInfo(castbar, name,texture,startTime,endTime, castID, notInterruptible, spellID)
+    UpdateCastingInfo(castbar, name,texture,startTime,duration, castID, notInterruptible, spellID)
 end
 function UnitEventHandler:UNIT_SPELLCAST_CHANNEL_START(event,unit)
     ChannelStart(self, unit)
@@ -717,11 +721,13 @@ local function ToggleNameOnly(frame, enable)
 end
 
 local function UpdateQuestStatus(frame, unit)
+    --[[
     if NugNameplates:IsQuestUnit(unit) then
         frame.questIcon:Show()
     else
         frame.questIcon:Hide()
     end
+    ]]
 end
 function NugNameplates:QUEST_LOG_UPDATE(event, unit)
     self:ForEachNameplate(UpdateQuestStatus)
@@ -758,21 +764,16 @@ function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
     -- Update for fresh added unit
 
     UpdateName(frame, unit)
+    UpdateMaxHealth(frame, unit)
     UpdateHealth(frame, unit)
-    if isMainline then
     UpdateAbsorb(frame, unit)
     UpdateHealAbsorb(frame, unit)
     UpdateQuestStatus(frame, unit)
-    end
     UpdateUnitCast(frame, unit)
     UpdateRaidIcon(frame, unit)
     UpdateAuras(frame, unit)
 
-    frame.npcID = GetUnitNPCID(unit)
-
-    frame.Health.lost.currentvalue = 0
-    frame.Health.lost.endvalue = 0
-
+    -- frame.npcID = GetUnitNPCID(unit)
 
     -- default unitframes
     local default_nameplate = nameplate.UnitFrame
@@ -1049,37 +1050,9 @@ function ns.SetupFrame(self, unit)
         spark:SetWidth(10)
         spark:SetHeight(pph)
         spark:SetVertexColor(1,0.7,0)
-        spark:SetPoint("CENTER",health)
+        spark:SetPoint("CENTER",health:GetStatusBarTexture(), "RIGHT", 0,0)
 		spark:SetBlendMode('ADD')
         health.spark = spark
-
-        local OriginalSetValue = health.SetValue
-        local math_max = math.max
-        local math_min = math.min
-        health.SetValue = function(self, new)
-            local cur = self:GetValue()
-            local min, max = self:GetMinMaxValues()
-            local fwidth = self:GetWidth()
-            local total = max-min
-
-            -- spark
-            local p = 0
-            if total > 0 then
-                p = (new-min)/(max-min)
-                if p >= 1 then
-                    p = 1
-                    self.spark:SetAlpha(0)
-                else
-                    if p < 0 then p = 0 end
-                    local a = math_min(p*40, 1)
-                    self.spark:SetAlpha(a)
-                end
-            end
-
-            self.spark:SetPoint("CENTER", self, "LEFT", p*fwidth, 0)
-
-            return OriginalSetValue(self, new)
-        end
 
         self.Health = health
 
@@ -1114,89 +1087,31 @@ function ns.SetupFrame(self, unit)
             local g2 = math.min(1, g+0.45)
             local b2 = math.min(1, b+0.45)
 
-            element.lost:SetVertexColor(r2,g2,b2)
+            element.lost:SetStatusBarColor(r2,g2,b2)
             if element.absorb then
-                element.absorb:SetVertexColor(r,g,b)
+                element.absorb:SetStatusBarColor(r,g,b)
             end
         end
 
-        if isMainline then
             -----------------
             -- ABSORB BAR
             -----------------
 
-            local absorb = health:CreateTexture(nil, "ARTWORK", nil, 3)
-            absorb:SetHorizTile(true)
+            local absorb = CreateFrame("StatusBar", nil, health)
+
             -- absorb:SetVertTile(true)
-            absorb:SetTexture(shieldTexture, "REPEAT", "REPEAT")
+            absorb:SetStatusBarTexture(shieldTexture)
+            absorb:GetStatusBarTexture():SetHorizTile(true)
             absorb:Hide()
-
-            absorb.Update = function(self, absorbValue, health, maxHealth)
-                local p
-                if absorbValue then
-                    p = absorbValue/maxHealth
-                    self.absorbPercent = p
-                else
-                    p = self.absorbPercent
-                end
-                local parent = self:GetParent()
-                local healthPercent = health/maxHealth
-
-                if p == 0 then
-                    self:Hide()
-                elseif p + healthPercent >= 1 then
-                    local p2 = 1 - healthPercent
-                    local offsetx = healthPercent*healthbar_width
-                    if p2 == 0 then
-                        self:Hide()
-                    else
-                        self:SetWidth(p2*healthbar_width)
-                        self:SetPoint("TOPLEFT", parent, "TOPLEFT", offsetx, 0)
-                        self:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", offsetx, 0)
-                        self:Show()
-                    end
-                else
-                    local offsetx = healthPercent*healthbar_width
-                    self:SetWidth(p*healthbar_width)
-                    self:SetPoint("TOPLEFT", parent, "TOPLEFT", offsetx, 0)
-                    self:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", offsetx, 0)
-                    self:Show()
-                end
-            end
             health.absorb = absorb
 
             ----------------------
             -- HEAL ABSORB
             ----------------------
 
-            local healAbsorb = health:CreateTexture(nil, "ARTWORK", nil, 4)
-            healAbsorb:SetTexture(texture)
-            healAbsorb:SetVertexColor(0,0,0, 0.4)
-            healAbsorb.Update = function(self, healAbsorbValue, health, maxHealth)
-                local p
-                if healAbsorbValue then
-                    p = healAbsorbValue/maxHealth
-                    self.healAbsorbPercent = p
-                else
-                    p = self.healAbsorbPercent
-                end
-                local parent = self:GetParent()
-                local healthPercent = health/maxHealth
-
-                if p > healthPercent then
-                    p = healthPercent
-                end
-
-                if p == 0 then
-                    self:Hide()
-                else
-                    local offsetx = (healthPercent-p)*healthbar_width
-                    self:SetWidth(p*healthbar_width)
-                    self:SetPoint("TOPLEFT", parent, "TOPLEFT", offsetx, 0)
-                    self:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", offsetx, 0)
-                    self:Show()
-                end
-            end
+            local healAbsorb = CreateFrame("StatusBar", nil, self)
+            healAbsorb:SetStatusBarTexture(texture)
+            healAbsorb:SetStatusBarColor(0,0,0, 0.4)
             health.healAbsorb = healAbsorb
 
             --[[
@@ -1221,80 +1136,17 @@ function ns.SetupFrame(self, unit)
                 end,
             }
             ]]
-        end
+
 
         -----------------------
         -- HEALTH LOSS EFFECT
         -----------------------
 
-        local healthlost = health:CreateTexture(nil, "ARTWORK")
-        healthlost:SetTexture(texture)
-        healthlost:SetVertexColor(1, 0.7, 0.7)
+        local healthlost = CreateFrame("StatusBar", nil, self)
+        healthlost:SetStatusBarTexture(texture)
+        healthlost:SetStatusBarColor(1, 0.7, 0.7)
+        healthlost:SetAllPoints(health)
         health.lost = healthlost
-
-        health._SetValue = health.SetValue
-        health.SetValue = function(self, v)
-            local min, max = self:GetMinMaxValues()
-            local vp = v/max
-            local offsetx = vp*healthbar_width
-            self.lost:SetPoint("TOPLEFT", self, "TOPLEFT", offsetx, 0)
-            self.lost:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", offsetx, 0)
-
-            self.lost:SetNewHealthTarget(vp)
-            self:_SetValue(v)
-        end
-
-        healthlost:SetPoint("TOPLEFT", health, "TOPLEFT", 0, 0)
-        healthlost:SetPoint("BOTTOMLEFT", health, "BOTTOMLEFT", 0, 0)
-
-        -- healthlost:SetMinMaxValues(0,100)
-        -- healthlost:SetValue(60)
-        -- health._SetMinMaxValues = health.SetMinMaxValues
-        -- health.SetMinMaxValues = function(self, min, max)
-        --     self.lost:SetMinMaxValues(min, max)
-        --     self:_SetMinMaxValues(min, max)
-        -- end
-
-        healthlost.currentvalue = 0
-        healthlost.endvalue = 0
-
-        healthlost.UpdateDiff = function(self)
-            local diff = self.currentvalue - self.endvalue
-            if diff > 0 then
-                self:SetWidth((diff)*healthbar_width)
-                self:SetAlpha(1)
-            else
-                self:SetWidth(1)
-                self:SetAlpha(0)
-            end
-        end
-
-        health:SetScript("OnUpdate", function(self, time)
-            self._elapsed = (self._elapsed or 0) + time
-            if self._elapsed < 0.025 then return end
-            self._elapsed = 0
-
-
-            local hl = self.lost
-            local diff = hl.currentvalue - hl.endvalue
-            if diff > 0 then
-                local d = (diff > 0.1) and diff/15 or 0.006
-                hl.currentvalue = hl.currentvalue - d
-                -- self:SetValue(self.currentvalue)
-                hl:UpdateDiff()
-            end
-        end)
-
-        healthlost.SetNewHealthTarget = function(self, vp)
-            if vp >= self.currentvalue or not UnitAffectingCombat("player") then
-                self.currentvalue = vp
-                self.endvalue = vp
-                -- self:SetValue(vp)
-                self:UpdateDiff()
-            else
-                self.endvalue = vp
-            end
-        end
 
 
         health.bg = health:CreateTexture(nil, "BACKGROUND", nil, 1)
@@ -1466,7 +1318,7 @@ function ns.SetupFrame(self, unit)
             end
 
             castbar.elapsed = 0
-            castbar:SetScript("OnUpdate", CastOnUpdate)
+            -- castbar:SetScript("OnUpdate", CastOnUpdate)
 
 
             castbar.shield = castbar:CreateTexture(nil, "ARTWORK")
