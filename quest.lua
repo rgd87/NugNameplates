@@ -29,9 +29,7 @@ end
 
 
 function NugNameplates:IsQuestUnit(unit)
-    scantip:SetOwner(UIParent,ANCHOR_NONE)
-    scantip:SetUnit(unit)
-
+    local info = C_TooltipInfo.GetUnit(unit)
     local match
     for i=3,scantip:NumLines() do
         local line = _G['NugNameplatesQuestTooltipTextLeft'..i]

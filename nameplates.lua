@@ -105,6 +105,46 @@ function NugNameplates:ADDON_LOADED(event, loadedName)
     self.db.RegisterCallback(self, "OnProfileCopied", "Reconfigure")
     self.db.RegisterCallback(self, "OnProfileReset", "Reconfigure")
 
+    SLASH_NUGNAMEPLATES1= "/nugnameplates"
+    SlashCmdList["NUGNAMEPLATES"] = NugNameplates.SlashCmd
+end
+
+
+
+
+local cvars = {
+    nameplateShowAll = "1", -- always show nameplates as opposed to only in combat which is the default
+    nameplateShowEnemyGuardians = "0",
+    nameplateShowEnemyMinions   = "0",
+    nameplateShowEnemyMinus     = "1",
+    nameplateShowEnemyPets      = "1",
+    nameplateShowEnemyTotems    = "1",
+
+    nameplateShowFriendlyNpcs   = "0",
+    nameplateShowFriendlyPlayers = "1",
+    nameplateShowFriendlyPlayerTotems = "0",
+}
+NugNameplates.Commands = {
+    ["setcvars"] = function()
+        for cvar, value in pairs(cvars) do
+            local current = tostring(GetCVar(cvar))
+            if current ~= value then
+                print("|cff9f7fffSetCVar|r", cvar, current, "|cffff9f7f==>|r", value)
+                SetCVar(cvar, value)
+            end
+        end
+    end,
+}
+function NugNameplates.SlashCmd(msg)
+    local k,v = string.match(msg, "([%w%+%-%=]+) ?(.*)")
+    if not k or k == "help" then print([=[Usage:
+      |cff00ff00/nugnameplates|r setcvars
+    ]=]
+    )end
+
+    if NugNameplates.Commands[k] then
+        NugNameplates.Commands[k](v)
+    end
 end
 
 function NugNameplates:Reconfigure()
@@ -457,7 +497,8 @@ local coloredSpells = {}
 local function UpdateCastingInfo(self,name,texture,startTime,duration,castID, notInterruptible, spellID)
     if not startTime then return end
     self.castID = castID
-    self:SetTimerDuration(duration)
+    local direction = self.channeling and 1 or 0
+    self:SetTimerDuration(duration, nil, direction)
     -- self.startTime = startTime / 1000
     -- self.endTime = endTime / 1000
     -- self:SetMinMaxValues(self.startTime, self.endTime)
