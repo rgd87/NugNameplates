@@ -1419,9 +1419,9 @@ function ns.SetupFrame(self, unit)
         }
 
 
-        local AuraIconInitializeFunc = function(showDispelBorder)
+        local AuraIconInitializeFunc = function(showDispelBorder, width, height)
         return function(button)
-            ns.SetupAuraIcon(button, pixelperfect(17, self), pixelperfect(17*0.7, self))
+            ns.SetupAuraIcon(button, pixelperfect(width, self), pixelperfect(height, self))
 
             -- button:SetHideTooltipInCombat(true)
 
@@ -1449,16 +1449,17 @@ function ns.SetupFrame(self, unit)
             candidateFilters = {
                 nameplateShowPersonal = true,
             },
-            initializeFrame = AuraIconInitializeFunc(false),
+            initializeFrame = AuraIconInitializeFunc(false, 17, 17*0.7),
         });
         debuffs:AddAuraGroup("AnyCC", "HARMFUL|CROWD_CONTROL", {
             maxFrameCount = 3,
-            initializeFrame = AuraIconInitializeFunc(false),
+            initializeFrame = AuraIconInitializeFunc(false, 17, 17*0.7),
         });
         debuffs:AddAuraGroup("ImportantBuffsFromAnySource", "HELPFUL|IMPORTANT|!PLAYER", {
             maxFrameCount = 3,
-            initializeFrame = AuraIconInitializeFunc(false),
+            initializeFrame = AuraIconInitializeFunc(false, 17, 17*0.7),
         });
+        -- If anything look here at AuraProcessingPolicy first
         debuffs:SetAuraProcessingPolicy(CustomAuraContainerAuraProcessingPolicy.ProcessAura)
         debuffs:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
         debuffs:SetAuraGroupLayout("PersonalDebuffs", { elementSpacing = pixelperfect(3), groupSpacing = pixelperfect(3) })
@@ -1470,15 +1471,15 @@ function ns.SetupFrame(self, unit)
 
 
         local buffs = CreateFrame("AuraContainer", nil, self, "CustomAuraContainerTemplate")
-        buffs:SetSize(healthbar_width, 30)
-        buffs:AddAuraGroup("Personalbuffs", "HELPFUL|!IMPORTANT|!PLAYER", {
+        buffs:SetSize(healthbar_width, 50)
+        buffs:AddAuraGroup("Personalbuffs", "HELPFUL", {
             maxFrameCount = 3,
             candidateFilters = {
                 isStealable = true,
             },
-            initializeFrame = AuraIconInitializeFunc(true),
+            initializeFrame = AuraIconInitializeFunc(true, 15, 15),
         });
-        buffs:SetAuraProcessingPolicy(CustomAuraContainerAuraProcessingPolicy.ProcessAura)
+        -- buffs:SetAuraProcessingPolicy(CustomAuraContainerAuraProcessingPolicy.ProcessAura)
         buffs:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
         buffs:SetAuraGroupLayout("Personalbuffs", { elementSpacing = pixelperfect(3), groupSpacing = pixelperfect(3) })
         buffs:SetFlowLayoutAxis(AnchorUtil.FlowLayoutAxis.Horizontal)
