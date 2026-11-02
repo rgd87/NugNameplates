@@ -181,9 +181,21 @@ function NugNameplates:PLAYER_TARGET_CHANGED(event)
     local playerFrame = C_NamePlate.GetNamePlateForUnit("player")
     for _, frame in pairs(C_NamePlate.GetNamePlates()) do
         if frame ~= playerFrame then
-            if frame == targetFrame or frame == focusFrame or not UnitExists("target") then
-                if frame.NugPlate then
+            if frame.NugPlate then
+                local isTarget = frame == targetFrame
+                if isTarget then
+                    local selectedScale = CVarCallbackRegistry:GetCVarNumberOrDefault("nameplateSelectedScale")
+                    ns.TightenPixels(frame.NugPlate, selectedScale)
+                    frame.NugPlate.wasTarget = true
+                else
+                    if frame.NugPlate.wasTarget then
+                        ns.TightenPixels(frame.NugPlate, 1)
+                        frame.NugPlate.wasTarget = nil
+                    end
+                end
+                if isTarget or frame == focusFrame or not UnitExists("target") then
                     frame.NugPlate:SetAlpha(1)
+
                     frame.NugPlate.Health.highlight:Hide()
                     if not frame.NugPlate.NAME_ONLY then
                         frame.NugPlate.Health.lost:Show()
@@ -191,19 +203,15 @@ function NugNameplates:PLAYER_TARGET_CHANGED(event)
 
                     frame.NugPlate.TargetGlow:SetShown(frame == targetFrame)
                     frame.NugPlate.FocusGlow:SetShown(frame == focusFrame)
-                end
-            else
-                if frame.NugPlate then
+                else
                     frame.NugPlate:SetAlpha(nonTargeAlpha)
                     frame.NugPlate.Health.highlight:Hide()
                     frame.NugPlate.Health.lost:Hide()
                     frame.NugPlate.TargetGlow:Hide()
                     frame.NugPlate.FocusGlow:Hide()
                 end
-            end
 
-            if frame.NugPlate then
-                frame.NugPlate.Health.highlight:SetShown(frame == mouseoverFrame and UnitExists("mouseover"))
+                frame.NugPlate.Health.highlight:SetShown(frame == mouseoverFrame and not isTarget and UnitExists("mouseover"))
             end
         end
 	end
@@ -964,14 +972,17 @@ function ns.GetSecretName(unit)
         local color = C_ClassColor.GetClassColor(class)
 
         return string.format("|c%s%s|r", color:GenerateHexColor(), name)
+    else
+        return name
     end
 end
 
 
-local function pixelperfect(val, region)
+local function pixelperfect(val, region, modScale)
     if not PixelUtil then return val end
+    modScale = modScale or 1
     region = region or UIParent
-    return PixelUtil.GetNearestPixelSize(val, region:GetEffectiveScale(), val)
+    return PixelUtil.GetNearestPixelSize(val, region:GetEffectiveScale()*modScale, val)
 end
 ns.pixelperfect = pixelperfect
 
@@ -1054,6 +1065,37 @@ function ns.SetupAuraIcon(f, width, height)
     return f
 end
 
+function ns.TightenPixels(self, modScale)
+    -- when nameplates scale after being selected that doesn't appear in :GetEffectiveScale()
+    -- so doing some custom multiplication here to keep pixelperfection on selected frame
+    local hmul = 0.80
+    local healthbar_width = pixelperfect(self:GetParent():GetWidth()*hmul, self, modScale)
+    local healthbar_height = pixelperfect(10, self, modScale)
+    local castbar_height = pixelperfect(12, self, modScale)
+    local total_height = castbar_height + healthbar_height + pixelperfect(2, self, modScale)
+
+    self:SetWidth(healthbar_width)
+    self:SetHeight(healthbar_height)
+
+    local health = self.Health
+    self.Health.absorb:SetWidth(health:GetWidth())
+    self.Health.healAbsorb:SetWidth(health:GetWidth())
+    self.Castbar:SetHeight(castbar_height)
+
+    local offset = pixelperfect(2, self, modScale)
+    local border = self.Border
+    border:SetPoint("TOPLEFT", health, "TOPLEFT", -offset, offset)
+    border:SetPoint("BOTTOMRIGHT", health, "BOTTOMRIGHT", offset, -offset)
+
+    local pp1 = pixelperfect(1, self, modScale)
+    self.Castbar.Border:SetPoint("TOPLEFT", self.Castbar, "TOPLEFT", -pp1, -pp1)
+    self.Castbar.Border:SetPoint("BOTTOMRIGHT", self.Castbar, "BOTTOMRIGHT", pp1, -pp1)
+
+    local ict = self.Castbar.Icon
+    ict.Border:SetPoint("TOPLEFT", ict, "TOPLEFT", -pp1, -pp1)
+    ict.Border:SetPoint("BOTTOMRIGHT", ict, "BOTTOMRIGHT", pp1, -pp1)
+end
+
 function ns.SetupFrame(self, unit)
 
         -- local healthbar_width = 85
@@ -1067,8 +1109,8 @@ function ns.SetupFrame(self, unit)
         -- local vmul = 0.2
         local healthbar_width = pixelperfect(self:GetParent():GetWidth()*hmul, self)
         -- local healthbar_height = pixelperfect(self:GetParent():GetHeight()*vmul, self)
-        local healthbar_height = pixelperfect(11, self)
-        local castbar_height = pixelperfect(14, self)
+        local healthbar_height = pixelperfect(10, self)
+        local castbar_height = pixelperfect(12, self)
         local total_height = castbar_height + healthbar_height + pixelperfect(2, self)
         local white = "Interface\\BUTTONS\\WHITE8X8"
 
@@ -1177,7 +1219,6 @@ function ns.SetupFrame(self, unit)
             absorb:SetPoint("TOPLEFT", hpEdgeTexture, "TOPRIGHT")
             absorb:SetPoint("BOTTOMLEFT", hpEdgeTexture, "BOTTOMRIGHT")
             absorb:SetWidth(health:GetWidth())
-            absorb:SetWidth(health:GetWidth())
 
             health.absorb = absorb
 
@@ -1193,7 +1234,6 @@ function ns.SetupFrame(self, unit)
             healAbsorb:SetStatusBarColor(0,0,0, 0.6)
             healAbsorb:SetPoint("TOPRIGHT", hpEdgeTexture, "TOPRIGHT")
             healAbsorb:SetPoint("BOTTOMRIGHT", hpEdgeTexture, "BOTTOMRIGHT")
-            healAbsorb:SetWidth(healthbar_height)
             healAbsorb:SetWidth(health:GetWidth())
             healAbsorb:SetFillStyle(3) -- Reverse
             -- healAbsorb:SetStatusBarTexture("Interface\\AddOns\\Aptechka\\shieldtex")
@@ -1262,12 +1302,14 @@ function ns.SetupFrame(self, unit)
 
         local border = self:CreateTexture(nil, "BACKGROUND")
         border:SetTexture("Interface\\AddOns\\NugNameplates\\SoftEdgeBG2")
+        -- border:SetTexture(white)
         border:SetVertexColor(0,0,0)
-        border:SetTextureSliceMargins(10, 10, 10, 10)
+        border:SetTextureSliceMargins(12, 12, 12, 12)
         local offset = pixelperfect(2, self)
         border:SetPoint("TOPLEFT", health, "TOPLEFT", -offset, offset)
         border:SetPoint("BOTTOMRIGHT", health, "BOTTOMRIGHT", offset, -offset)
         self.Border = border
+
         --[[
         local sizeMul = 1.60
         local borderCENTER = self:CreateTexture(nil, "BACKGROUND")
@@ -1276,23 +1318,27 @@ function ns.SetupFrame(self, unit)
         borderCENTER:SetTexCoord(11/64, 53/64, 0, 1)
         borderCENTER:SetPoint("LEFT",0,0)
         borderCENTER:SetPoint("RIGHT",0,0)
-        borderCENTER:SetHeight(pph*sizeMul)
+        borderCENTER:SetHeight(healthbar_height*sizeMul)
 
         local borderLEFT = self:CreateTexture(nil, "BACKGROUND")
         borderLEFT:SetTexture("Interface\\AddOns\\NugNameplates\\SoftEdgeBG2")
         borderLEFT:SetVertexColor(0,0,0)
         borderLEFT:SetTexCoord(0/64, 11/64, 0, 1)
         borderLEFT:SetPoint("RIGHT", borderCENTER, "LEFT", 0,0)
-        borderLEFT:SetWidth(pph*sizeMul * 11/64)
-        borderLEFT:SetHeight(pph*sizeMul)
+        borderLEFT:SetWidth(healthbar_height*sizeMul * 11/64)
+        borderLEFT:SetHeight(healthbar_height*sizeMul)
 
         local borderRIGHT = self:CreateTexture(nil, "BACKGROUND")
         borderRIGHT:SetTexture("Interface\\AddOns\\NugNameplates\\SoftEdgeBG2")
         borderRIGHT:SetVertexColor(0,0,0)
         borderRIGHT:SetTexCoord(53/64, 64/64, 0, 1)
         borderRIGHT:SetPoint("LEFT", borderCENTER, "RIGHT", 0,0)
-        borderRIGHT:SetWidth(pph*sizeMul * 11/64)
-        borderRIGHT:SetHeight(pph*sizeMul)
+        borderRIGHT:SetWidth(healthbar_height*sizeMul * 11/64)
+        borderRIGHT:SetHeight(healthbar_height*sizeMul)
+
+        self.Border = { borderLEFT, borderCENTER, borderRIGHT }
+        self.Border.Show = function(self) for _, region in ipairs(self) do region:Show() end end
+        self.Border.Hide = function(self) for _, region in ipairs(self) do region:Hide() end end
         ]]
 
         -- local healthborder = MakeBorder(health, flat, -1, -1, -1, -1, -2)
@@ -1303,7 +1349,7 @@ function ns.SetupFrame(self, unit)
         -- hbg:SetAllPoints()
         -- hbg:SetColorTexture(0.2, 0.2, 0.2)
 
-        local targetGlow = health:CreateTexture(nil, "BACKGROUND", nil, -6)
+        local targetGlow = self:CreateTexture(nil, "BACKGROUND", nil, -6)
         targetGlow:SetPoint("TOPLEFT", health, "BOTTOMLEFT",0,-1)
         targetGlow:SetPoint("BOTTOMRIGHT", health, "BOTTOMRIGHT",0,-11)
         targetGlow:SetBlendMode("ADD")
@@ -1358,8 +1404,9 @@ function ns.SetupFrame(self, unit)
             cbbg:SetColorTexture(r*0.2, g*0.2, b*0.2)
             castbar.bg = cbbg
 
-            local castbarborder = MakeBorder(castbar, flat, -pp1, -pp1, -pp1, -pp1, -2)
+            local castbarborder = MakeBorder(castbar, flat, -1, -1, -1, -1, -2)
             castbarborder:SetVertexColor(0,0,0,1)
+            castbar.Border = castbarborder
 
             local ict = castbar:CreateTexture(nil,"ARTWORK",nil,0)
             ict:SetPoint("TOPRIGHT",health,"TOPLEFT", -3, 0)
@@ -1373,7 +1420,9 @@ function ns.SetupFrame(self, unit)
             iconborder:SetPoint("BOTTOMRIGHT", ict, "BOTTOMRIGHT", 1, -1)
             iconborder:SetVertexColor(0,0,0,1)
 
+
             castbar.Icon = ict
+            castbar.Icon.Border = iconborder
 
 
             local spellText = castbar:CreateFontString();
