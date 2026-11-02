@@ -537,6 +537,9 @@ UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
 UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_EMPOWER_START")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_EMPOWER_UPDATE")
+UnitEventHandler:RegisterEvent("UNIT_SPELLCAST_EMPOWER_STOP")
 
 
 -- local CastOnUpdate = function(self, elapsed)
@@ -576,18 +579,14 @@ local function UpdateCastingInfo(self,name,texture,startTime,duration,castID, no
     self.Icon:SetTexture(texture)
     self.Text:SetText(name)
 
-    local color = coloredSpells[spellID] or (self.channeling and colors.channeling or colors.casting)
+    local color = self.channeling and colors.channeling or colors.casting
     self:SetColor(unpack(color))
     self.isActive = true
     self:Show()
 
     if self.shield then
-        if notInterruptible then
-            self.shield:Show()
-            self:SetColor(unpack(colors.notInterruptible))
-        else
-            self.shield:Hide()
-        end
+        self.shield:Show()
+        self.shield:SetAlphaFromBoolean(notInterruptible, 1, 0)
     end
 end
 
@@ -595,14 +594,17 @@ end
 local function CastStart(frame, unit)
     if frame.NAME_ONLY then return end
     local castbar = frame.Castbar
-    local name, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible, spellID, castBarID, delayTimeMs = UnitCastingInfo(unit)
-    local duration = UnitCastingDuration(srcUnit)
+    local name, text, texture, startTime, endTime, isTradeSkill, castGUID, notInterruptible, spellID, castID, delayTimeMs = UnitCastingInfo(unit)
+    local duration = UnitCastingDuration(unit)
     castbar.channeling = false
-    castbar.fadingStartTime = nil
+    castbar.empowered = nil
+    if castbar.fader:IsPlaying() then
+        castbar.fader:Stop()
+    end
     castbar:SetAlpha(1)
-    UpdateCastingInfo(castbar, name,texture,startTime,duration,castID, notInterruptible, spellID)
+    UpdateCastingInfo(castbar, name, texture, startTime, duration, castID, notInterruptible, spellID)
 end
-function UnitEventHandler:UNIT_SPELLCAST_START(event, unit, castID, spellID)
+function UnitEventHandler:UNIT_SPELLCAST_START(event, unit)
     CastStart(self, unit)
 end
 UnitEventHandler.UNIT_SPELLCAST_DELAYED = UnitEventHandler.UNIT_SPELLCAST_START
@@ -611,62 +613,96 @@ local function ChannelStart(frame, unit)
     if frame.NAME_ONLY then return end
     -- if unit ~= frame.unit then return end
     local castbar = frame.Castbar
-    local name, text, texture, startTime, endTime, isTradeSkill,         notInterruptible, spellID, isEmpowered = UnitChannelInfo(unit)
+    local name, text, texture, startTime, endTime, isTradeSkill,         notInterruptible, spellID, isEmpowered, numStages, castID = UnitChannelInfo(unit)
     local duration
     if(isEmpowered) then
         duration = UnitEmpoweredChannelDuration(unit)
     else
         duration = UnitChannelDuration(unit)
     end
-    castbar.channeling = true
-    local castID = nil
-    castbar.fadingStartTime = nil
+    castbar.channeling = not isEmpowered
+    castbar.empowered = isEmpowered
+    if castbar.fader:IsPlaying() then
+        castbar.fader:Stop()
+    end
     castbar:SetAlpha(1)
     UpdateCastingInfo(castbar, name,texture,startTime,duration, castID, notInterruptible, spellID)
 end
 function UnitEventHandler:UNIT_SPELLCAST_CHANNEL_START(event,unit)
     ChannelStart(self, unit)
 end
+UnitEventHandler.UNIT_SPELLCAST_EMPOWER_START = UnitEventHandler.UNIT_SPELLCAST_CHANNEL_START
 UnitEventHandler.UNIT_SPELLCAST_CHANNEL_UPDATE = UnitEventHandler.UNIT_SPELLCAST_CHANNEL_START
+UnitEventHandler.UNIT_SPELLCAST_EMPOWER_UPDATE = UnitEventHandler.UNIT_SPELLCAST_CHANNEL_START
 
-local function CastStop(frame, unit, castID)
+local function CastStop(frame, unit, castIGUID, spellID, castID, interruptedBy, empowerComplete)
     local castbar = frame.Castbar
-    castbar.fadingStartTime = castbar.fadingStartTime or GetTime()
+
+    if castbar.castID ~= castID then return end
+
+    if interruptedBy then
+        castbar:SetColor(1,0,0)
+    end
+    if empowerComplete then
+        castbar:SetColor(0,1,0)
+    end
+
+    castbar:SetMinMaxValues(0,1)
+    castbar:SetValue(castbar.channeling and 0 or 1)
+    castbar.fader:Play()
 end
-local function CastStopInstant(frame, unit, castID)
+local function CastStopInstant(frame, unit)
     local castbar = frame.Castbar
     castbar.fadingStartTime = GetTime() - 3
     castbar:Hide()
 end
-function UnitEventHandler:UNIT_SPELLCAST_STOP(event, unit, castID)
-    CastStop(self, unit, castID)
-end
+function UnitEventHandler:UNIT_SPELLCAST_STOP(event, unit, castGUID, spellID, ...)
+    local castID, interruptedBy, empowerComplete
+	if(event == 'UNIT_SPELLCAST_STOP') then
+		castID = ...
+	elseif(event == 'UNIT_SPELLCAST_EMPOWER_STOP') then
+		empowerComplete, interruptedBy, castID = ...
+	elseif(event == 'UNIT_SPELLCAST_CHANNEL_STOP') then
+		interruptedBy, castID = ...
+	end
 
-local function CastFailed(frame, unit, castID)
+    CastStop(self, unit, castGUID, spellID, castID, interruptedBy, empowerComplete)
+end
+UnitEventHandler.UNIT_SPELLCAST_CHANNEL_STOP = UnitEventHandler.UNIT_SPELLCAST_STOP
+UnitEventHandler.UNIT_SPELLCAST_EMPOWER_STOP = UnitEventHandler.UNIT_SPELLCAST_STOP
+
+local function CastFailed(frame, unit, castGUID, spellID, castID, interruptedBy)
     -- if unit ~= frame.unit then return end
     local castbar = frame.Castbar
     if castbar.castID == castID then
-        CastStop(frame, unit, castID)
+        CastStop(frame, unit, castGUID, spellID, castID, interruptedBy)
         castbar:SetColor(1,0,0)
     end
 end
-function UnitEventHandler:UNIT_SPELLCAST_FAILED(event, unit, castID)
-    CastFailed(self, unit, castID)
+function UnitEventHandler:UNIT_SPELLCAST_FAILED(event, unit, castGUID, spellID, ...)
+    local castID, interruptedBy
+	if(event == 'UNIT_SPELLCAST_INTERRUPTED') then
+		interruptedBy, castID = ...
+	elseif(event == 'UNIT_SPELLCAST_FAILED') then
+		castID = ...
+	end
+
+    CastFailed(self, unit, castGUID, spellID, castID, interruptedBy)
 end
 UnitEventHandler.UNIT_SPELLCAST_INTERRUPTED = UnitEventHandler.UNIT_SPELLCAST_FAILED
-UnitEventHandler.UNIT_SPELLCAST_CHANNEL_STOP = UnitEventHandler.UNIT_SPELLCAST_STOP
+
 
 
 local function CastUpdateInterruptible(frame, isInterruptible)
     local castbar = frame.Castbar
-    if isInterruptible then
-        castbar.shield:Hide()
+    if isInterruptible then -- in this case it's not a secret value, it is in CastStart tho
         local color = castbar.channeling and colors.channeling or colors.casting
         castbar:SetColor(unpack(color))
     else
-        castbar.shield:Show()
         castbar:SetColor(unpack(colors.notInterruptible))
     end
+    castbar.shield:Show()
+    castbar.shield:SetAlphaFromBoolean(notInterruptible, 1, 0)
 end
 function UnitEventHandler:UNIT_SPELLCAST_INTERRUPTIBLE(event,unit)
     CastUpdateInterruptible(self, true)
@@ -675,16 +711,17 @@ function UnitEventHandler:UNIT_SPELLCAST_NOT_INTERRUPTIBLE(event,unit)
     CastUpdateInterruptible(self, false)
 end
 
-local function CastSucceeded(frame, unit, castID)
+local function CastSucceeded(frame, unit, castGUID, spellID, castID)
     local castbar = frame.Castbar
     if castbar.channeling then return end
+    if castbar.empowered then return end
     if castbar.castID == castID then
-        CastStop(frame, unit, castID)
-        castbar:SetColor(1,0,0)
+        CastStop(frame, unit, castGUID, spellID, castID)
+        castbar:SetColor(0,1,0)
     end
 end
-function UnitEventHandler:UNIT_SPELLCAST_SUCCEEDED(event, unit, castID)
-    CastSucceeded(self, unit, castID)
+function UnitEventHandler:UNIT_SPELLCAST_SUCCEEDED(event, unit, castGUID, spellID, castID)
+    CastSucceeded(self, unit, castGUID, spellID, castID)
 end
 
 local function UpdateUnitCast(frame, unit)
@@ -1317,13 +1354,20 @@ function ns.SetupFrame(self, unit)
                 self.bg:SetColorTexture(r*0.2, g*0.2, b*0.2)
             end
 
-            castbar.elapsed = 0
-            -- castbar:SetScript("OnUpdate", CastOnUpdate)
+
+            local faderGroup = castbar:CreateAnimationGroup()
+            local fadeAnim = faderGroup:CreateAnimation("Alpha")
+            fadeAnim:SetFromAlpha(1)
+            fadeAnim:SetToAlpha(0)
+            fadeAnim:SetDuration(0.5)
+            faderGroup:SetScript("OnFinished", function(self)
+                local parent = self:GetParent()
+                parent:Hide()
+            end)
+            castbar.fader = faderGroup
 
 
             castbar.shield = castbar:CreateTexture(nil, "ARTWORK")
-
-            castbar.startTime = 0
 
 
             self.Castbar = castbar
