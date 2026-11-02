@@ -145,37 +145,25 @@ function NugNameplates:PLAYER_TARGET_CHANGED(event)
                 if frame.NugPlate then
                     frame.NugPlate:SetAlpha(1)
                     frame.NugPlate.Health.highlight:Hide()
-                    -- frame.NugPlate.Health.lost:Show()
-                    if frame == targetFrame then
-                        frame.NugPlate.TargetGlow:Show()
-                    else
-                        frame.NugPlate.TargetGlow:Hide()
+                    if not frame.NugPlate.NAME_ONLY then
+                        frame.NugPlate.Health.lost:Show()
                     end
 
-                    if frame == focusFrame then
-                        frame.NugPlate.FocusGlow:Show()
-                    else
-                        frame.NugPlate.FocusGlow:Hide()
-                    end
+                    frame.NugPlate.TargetGlow:SetShown(frame == targetFrame)
+                    frame.NugPlate.FocusGlow:SetShown(frame == focusFrame)
                 end
             else
                 if frame.NugPlate then
                     frame.NugPlate:SetAlpha(nonTargeAlpha)
                     frame.NugPlate.Health.highlight:Hide()
-                    -- frame.NugPlate.Health.lost:Hide()
+                    frame.NugPlate.Health.lost:Hide()
                     frame.NugPlate.TargetGlow:Hide()
                     frame.NugPlate.FocusGlow:Hide()
                 end
             end
 
-            if frame == mouseoverFrame and UnitExists("mouseover") then
-                if frame.NugPlate then
-                    frame.NugPlate.Health.highlight:Show()
-                end
-            else
-                if frame.NugPlate then
-                    frame.NugPlate.Health.highlight:Hide()
-                end
+            if frame.NugPlate then
+                frame.NugPlate.Health.highlight:SetShown(frame == mouseoverFrame and UnitExists("mouseover"))
             end
         end
 	end
@@ -250,8 +238,8 @@ end)
 UnitEventHandler:RegisterEvent('UNIT_NAME_UPDATE')
 
 local function UpdateName(frame, unit)
-    -- local name = ns.GetCustomName(unit)
-    local name = UnitName(unit)
+    local name = ns.GetSecretName(unit)
+    -- local name = UnitName(unit)
     frame.Name:SetText(name)
 
     local guild = GetGuildInfo(unit)
@@ -638,6 +626,9 @@ local function ToggleNameOnly(frame, enable)
         frame.Name:SetShadowOffset(1,-1)
         frame.GuildName:Show()
         frame.Health:Hide()
+        frame.Border:Hide()
+        frame.Health.bg:Hide()
+        frame.Health.lost:Hide()
         frame.Castbar:Hide()
         frame.Buffs:Hide()
         frame.Debuffs:Hide()
@@ -649,6 +640,9 @@ local function ToggleNameOnly(frame, enable)
         frame.Name:SetShadowOffset(0,0)
         frame.GuildName:Hide()
         frame.Health:Show()
+        frame.Border:Show()
+        frame.Health.bg:Show()
+        frame.Health.lost:Show()
         frame.Castbar:Show()
         frame.Buffs:Show()
         frame.Debuffs:Show()
@@ -920,6 +914,19 @@ function ns.GetCustomName(unit)
     return ""
 end
 
+
+function ns.GetSecretName(unit)
+    local name = UnitName(unit)
+
+    if UnitIsPlayer(unit) then
+        local _, class = UnitClass(unit)
+        local color = C_ClassColor.GetClassColor(class)
+
+        return string.format("|c%s%s|r", color:GenerateHexColor(), name)
+    end
+end
+
+
 local function pixelperfect(val, region)
     if not PixelUtil then return val end
     region = region or UIParent
@@ -952,14 +959,6 @@ function ns.SetupFrame(self, unit)
         local castbar_height = pixelperfect(10, self)
         local total_height = castbar_height + healthbar_height + pixelperfect(2)
         local white = "Interface\\BUTTONS\\WHITE8X8"
-
-        hooksecurefunc(self, "SetAlpha", function(self, alpha)
-            if alpha == 1 then
-                self.Health.lost:Show()
-            else
-                self.Health.lost:Hide()
-            end
-        end)
 
         self.colors = colors
         -- set size and points
@@ -1149,6 +1148,7 @@ function ns.SetupFrame(self, unit)
         local offset = pixelperfect(2, self)
         border:SetPoint("TOPLEFT", health, "TOPLEFT", -offset, offset)
         border:SetPoint("BOTTOMRIGHT", health, "BOTTOMRIGHT", offset, -offset)
+        self.Border = border
         --[[
         local sizeMul = 1.60
         local borderCENTER = self:CreateTexture(nil, "BACKGROUND")
