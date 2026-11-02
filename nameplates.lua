@@ -1027,11 +1027,11 @@ function ns.SetupFrame(self, unit)
                 bg:SetVertexColor(r * mu, g * mu, b * mu)
             end
 
-            local r2 = math.min(1, r+0.45)
-            local g2 = math.min(1, g+0.45)
-            local b2 = math.min(1, b+0.45)
+            -- local r2 = math.min(1, r+0.45)
+            -- local g2 = math.min(1, g+0.45)
+            -- local b2 = math.min(1, b+0.45)
 
-            element.lost:SetStatusBarColor(r2,g2,b2)
+            -- element.lost:SetStatusBarColor(r2,g2,b2)
             -- if element.absorb then
                 -- element.absorb:SetStatusBarColor(r,g,b)
             -- end
@@ -1106,12 +1106,12 @@ function ns.SetupFrame(self, unit)
 
         local healthlost = CreateFrame("StatusBar", nil, self)
         healthlost:SetStatusBarTexture(texture)
-        healthlost:SetStatusBarColor(1, 0.7, 0.7)
+        healthlost:SetStatusBarColor(1, 0.6, 0.6)
         healthlost:SetAllPoints(health)
         health.lost = healthlost
 
 
-        health.bg = health:CreateTexture(nil, "BACKGROUND", nil, 1)
+        health.bg = self:CreateTexture(nil, "BACKGROUND", nil, 1)
         health.bg:SetAllPoints(health)
         health.bg:SetTexture(texture)
         -- health.bg:SetTexture("Interface\\AddOns\\NugNameplates\\barSoft")
@@ -1133,8 +1133,17 @@ function ns.SetupFrame(self, unit)
         hl:Hide()
         health.highlight = hl
 
+
+        local border = self:CreateTexture(nil, "BACKGROUND")
+        border:SetTexture("Interface\\AddOns\\NugNameplates\\SoftEdgeBG2")
+        border:SetVertexColor(0,0,0)
+        border:SetTextureSliceMargins(10, 10, 10, 10)
+        local offset = pixelperfect(2, self)
+        border:SetPoint("TOPLEFT", health, "TOPLEFT", -offset, offset)
+        border:SetPoint("BOTTOMRIGHT", health, "BOTTOMRIGHT", offset, -offset)
+        --[[
         local sizeMul = 1.60
-        local borderCENTER = health:CreateTexture(nil, "BACKGROUND")
+        local borderCENTER = self:CreateTexture(nil, "BACKGROUND")
         borderCENTER:SetTexture("Interface\\AddOns\\NugNameplates\\SoftEdgeBG2")
         borderCENTER:SetVertexColor(0,0,0)
         borderCENTER:SetTexCoord(11/64, 53/64, 0, 1)
@@ -1142,7 +1151,7 @@ function ns.SetupFrame(self, unit)
         borderCENTER:SetPoint("RIGHT",0,0)
         borderCENTER:SetHeight(pph*sizeMul)
 
-        local borderLEFT = health:CreateTexture(nil, "BACKGROUND")
+        local borderLEFT = self:CreateTexture(nil, "BACKGROUND")
         borderLEFT:SetTexture("Interface\\AddOns\\NugNameplates\\SoftEdgeBG2")
         borderLEFT:SetVertexColor(0,0,0)
         borderLEFT:SetTexCoord(0/64, 11/64, 0, 1)
@@ -1150,13 +1159,14 @@ function ns.SetupFrame(self, unit)
         borderLEFT:SetWidth(pph*sizeMul * 11/64)
         borderLEFT:SetHeight(pph*sizeMul)
 
-        local borderRIGHT = health:CreateTexture(nil, "BACKGROUND")
+        local borderRIGHT = self:CreateTexture(nil, "BACKGROUND")
         borderRIGHT:SetTexture("Interface\\AddOns\\NugNameplates\\SoftEdgeBG2")
         borderRIGHT:SetVertexColor(0,0,0)
         borderRIGHT:SetTexCoord(53/64, 64/64, 0, 1)
         borderRIGHT:SetPoint("LEFT", borderCENTER, "RIGHT", 0,0)
         borderRIGHT:SetWidth(pph*sizeMul * 11/64)
         borderRIGHT:SetHeight(pph*sizeMul)
+        ]]
 
         -- local healthborder = MakeBorder(health, flat, -1, -1, -1, -1, -2)
         -- healthborder:SetVertexColor(0,0,0,1)
