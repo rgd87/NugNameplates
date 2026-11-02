@@ -168,10 +168,7 @@ function NugNameplates:PLAYER_TARGET_CHANGED(event)
                 end
             end
 
-            -- propblem here is UPDATE_MOUSEOVER_UNIT doesn't fire when mouseover becomes nil
-            -- So ideally could try using a state driver
-            -- RegisterStateDriver(YourCustomFrame, "visibility", "[@mouseover,exists] show; hide")
-            if frame == mouseoverFrame and UnitExists("mouseover") and mouseoverFrame ~= targetFrame then
+            if frame == mouseoverFrame and UnitExists("mouseover") then
                 if frame.NugPlate then
                     frame.NugPlate.Health.highlight:Show()
                 end
@@ -185,6 +182,17 @@ function NugNameplates:PLAYER_TARGET_CHANGED(event)
 end
 NugNameplates.UPDATE_MOUSEOVER_UNIT = NugNameplates.PLAYER_TARGET_CHANGED
 NugNameplates.PLAYER_FOCUS_CHANGED = NugNameplates.PLAYER_TARGET_CHANGED
+
+-- UPDATE_MOUSEOVER_UNIT doesn't fire when mouseover becomes nil
+-- So using a state driver to track it
+-- And UPDATE_MOUSEOVER_UNIT is still needed because it fires when mouseover switches from one target
+-- to another without becoming nil
+local driverFrame = CreateFrame("Frame", nil, UIParent, "SecureHandlerStateTemplate")
+driverFrame:SetScript("OnAttributeChanged", function(self, attribute, newstate)
+    NugNameplates:PLAYER_TARGET_CHANGED("STATE_DRIVER")
+end)
+RegisterStateDriver(driverFrame, "mouseover", "[@mouseover,exists] show; hide")
+
 
 local function GetUnitNPCID(unit)
     local guid = UnitGUID(unit)
