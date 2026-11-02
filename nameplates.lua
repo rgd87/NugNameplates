@@ -112,151 +112,6 @@ end
 
 
 
-local npc_colors
-if isMainline then
-    npc_colors = {
-        [174773] = MPlusAffix, -- Spiteful Shade, Spiteful M+ Affix
-
-        -- Plaguefall
-        [168572] = importantNPC, -- Fungi Stormer
-        [168393] = importantNPC, -- Plaguebelcher
-        [169498] = importantNPC, -- Doctor Ickus, Plague Bomb
-
-
-        -- Theater of Pain
-
-
-        -- Halls of Atonement
-        [164562] = importantNPC, -- Depraved Houndmaster, enrages Gargons
-        [167612] = importantNPC, -- Stoneborn Reaver, casts DR and stun
-        [167876] = importantNPC, -- Inquisitor Sigar
-
-        -- Sanguine Depths
-        [162038] = importantNPC, -- Regal Mistdancer, doing Echoing Thrust
-        [162040] = importantNPC2, -- Grand Overseer, casts Dread Bindings & Curse of Suppression
-        [162057] = importantNPC3, -- Chamber Sentinel, gargoyle
-
-        -- Spires of Ascension
-        [163459] = importantNPC, -- Forsworn Mender, healer
-        [168318] = importantNPC2, -- Forsworn Goliath
-
-        [168420] = importantNPC, -- Forsworn Champion, same as Mender
-        [163520] = importantNPC2, -- Forsworn Squad-Leader
-        [168418] = importantNPC, -- Forsworn Inquisitor
-
-        [168718] = importantNPC, -- Forsworn Warden, another healer
-
-        -- Necrotic Wake
-        [166302] = importantNPC, -- Corpse Harvester, casts drain fluids
-        [163121] = importantNPC2, -- Stitched Vanguard, stacking tank damage
-        -- [165137] = importantNPC2, -- Zolramus Gatekeeper, Clinging Darkness and AOe
-
-        [164702] = importantNPC, -- Carrion Worm, Blightbone
-
-        [163618] = importantNPC,  -- Zolramus Necromancer, casts Necrotic bolts
-        [163619] = importantNPC2, -- Zolramus Bonecarver, casts Boneflay on tank
-        [165824] = importantNPC3,  -- Nar'zudah, miniboss before bridge
-
-        [173016] = importantNPC, -- Corpse Collector, casts Coresplatter
-        [172981] = importantNPC2, -- Kyrian Stitchwerk, tank damage
-        [163621] = importantNPC2, -- Goregrind
-
-        [165872] = importantNPC3, -- Flesh Crafter, casts Throw Cleaver, Repair Flesh
-        [173044] = importantNPC3, -- Stitching Assistant, casts Throw Cleaver, Drain fluids
-        [167731] = importantNPC3, -- Separation Assistant, casts Throw Cleaver, Morbid Fixation
-
-        -- De other Side
-        [169905] = importantNPC, -- Risen Warlord, Enrages
-        [168992] = importantNPC2, -- Risen Cultist, casts Dark Lotus
-        [168942] = importantNPC, -- Death Speaker, casts Knockback
-        -- [168934] = importantNPC, -- Enraged Spirit, hude masked troll
-        [170486] = importantNPC, -- Atal'ai Devoted, transforming into crazy serpent
-        [171333] = importantNPC, -- Atal'ai Devoted, transforming into crazy serpent
-        [170572] = importantNPC2, -- Atal'ai Hoodoo Hexxer, casts Hex
-        [170480] = importantNPC3, -- Atal'ai Deathwalker, stack melee bleed, transform after death
-        [170483] = gtfo, -- Atal'ai Deathwalker's Spirit, oneshots
-
-        [167964] = importantNPC2, -- 4.RF-4.RF
-        [167962] = importantNPC, -- Defunct Dental Drill, casts Haywire aoe
-        [167966] = garbage, -- Experimental Sludge
-        [101976] = importantNPC, -- Millificent Manastorm (Boss)
-
-        [164861] = importantNPC, -- Spriggan Barkbinder, casts personal DR
-        [171184] = importantNPC2, -- Mythresh, Sky's Talons, casts Fear aoe
-
-        -- Mists of Tirna Scithe
-        [164921] = importantNPC, -- Drust Harvester, casts interruptible aoe
-        [164929] = importantNPC2, -- Tirnenn Villager
-
-        [164804] = importantNPC, -- Droman Oulfarran (Boss)
-
-        [166301] = importantNPC, -- Mistveil Stalker, Jump and leave bleed
-        -- [166299] = importantNPC2, -- Mistveil Tender, casts Heal
-        [166275] = importantNPC2, -- Mistveil Shaper, casts Shield
-
-        [165251] = importantNPC, -- Illusionary Vulpin (from Mistcaller Boss), fixates
-
-        [167116] = importantNPC, -- Spinemaw Reaver, charges into ranged
-        ---
-
-
-        [120651] = MPlusAffix, -- M+ explosive affix spheres
-
-        [130909] = importantNPC, -- Underrot, Fetid Maggot, uninterruptible cone aoe
-        [131492] = importantNPC, -- Underrot, Devout Blood Priest, casts Gift of G'huun and Heal
-        -- [134284] = importantNPC, -- Underrot, Fallen Deathspeaker, the main guy in the pack
-
-        [128434] = importantNPC, -- Atal'Dazar, Feasting Skyscreamer, casts Fear
-
-        [127111] = importantNPC, -- Freehold, Irontide Oarsman, casts Sea Spout
-
-        [134174] = importantNPC, -- King's Rest, Shadow-Borne Witch Doctor, casts Shadow Bolt Volley
-        [134331] = importantNPC, -- King's Rest, King Rahu'ai, casts aoe lightning
-
-        [135167] = importantNPC, -- King's Rest, Spectral Berserker, casts Severing Blade (insane bleed)
-        [135235] = importantNPC2, -- King's Rest, Spectral Beastmaster, casts Poison Barrage
-
-        [134139] = importantNPC, -- Shrine of the Storm, Shrine Templar, casts Protective Aura
-        [134150] = importantNPC2, -- Shrine of the Storm, Runecarver Sorn, miniboss dude with Reinforcing Ward
-        [134417] = importantNPC, -- Shrine of the Storm, Deepsea Ritualist, cast Unending Darkness
-
-        [141283] = importantNPC, -- Siege of Boralus, Kul Tiran Halberd, casts frontal aoe
-        [132481] = importantNPC, -- Siege of Boralus, Kul Tiran Halberd, casts frontal aoe
-        [128969] = importantNPC, -- Siege of Boralus, Ashvane Commander, casts Bolstering Shout which applies an 8 second magic buff to all nearby trash, reducing the damage they take by 75%.
-        [136549] = importantNPC, -- Siege of Boralus, Ashvane Cannoneer, casts frontal aoe
-        -- [137516] = importantNPC, -- Siege of Boralus, Ashvane Invader, casts Stinging Venom Coating (id:275835) which buffs their melee attacks
-
-        [134990] = importantNPC, -- Temple of Sethraliss, Charged Dust Devil, casts Heal
-        -- Aspix Lightning Shield Spell ID: 263246
-        -- [134629] = importantNPC, -- Temple of Sethraliss, Scaled Krolusk Rider, frontal aoe
-        [134364] = importantNPC, -- Temple of Sethraliss, Faithless Tender, casts Heal
-        [139949] = importantNPC, -- Temple of Sethraliss, Plague Doctor, casts Chain Lightning & CC
-
-        [134232] = importantNPC, -- MOTHERLODE, Hired Assassin, casts Poison & AoE
-        [134012] = importantNPC, -- MOTHERLODE, Taskmaster Askari, casts Cover (id:263275) which will redirect 50% of damage taken by nearby allies to the Taskmaster. This buff also reduces all damage taken by 75%.
-        [133432] = importantNPC, -- MOTHERLODE, Venture Co. Alchemist, casts Transmute: Enemy to Goo
-        [133593] = importantNPC, -- MOTHERLODE, Expert Technician, casts Overcharge & Repair
-
-        [130025] = importantNPC, -- Tol Dagor, Irontide Thug, casts Debilitating Shout
-        [130026] = importantNPC, -- Tol Dagor, Bilge Rat Seaspeaker, casts Watery Dome applies a magic buff to all nearby trash mobs which reduces all incoming damage by 75% for 8 seconds. This buff also applies a damage absorption shield.
-        [130655] = importantNPC, -- Tol Dagor, Bobby Howlis, casts Vicious Mauling
-        [135699] = importantNPC, -- Tol Dagor, Ashvane Jailer, will buff (id:258317) themselves and any trash within 10 yards when they channel  Riot Shield. This reduces incoming damage by 75% and redirects all spells back to the player that cast them
-
-        -- [131677] = importantNPC, -- Waycrest, Heartsbane Runeweaver, casts Etch & frontal  Marking Cleave
-        -- Some Devouring Maggots (npcID:134024) have the Parasitic (id:278431) buff. This grants them access to the Infest spell.
-        [137830] = importantNPC, -- Waycrest, Pallid Gorger, will leap to the furthest target with their Ravaging Leap cast & frontal aoe
-        [131586] = importantNPC, -- Waycrest, Banquet Steward, will cast Dinner Bell
-        [131812] = importantNPC, -- Waycrest, Heartsbane Soulcharmer, casts Soul Valley & Warding Candles (id:264027)
-
-        [150292] = importantNPC2, -- Mechagon, Mechagon Cavalry, casts Rapid Fire
-        [150297] = importantNPC, -- Mechagon, Mechagon Renormalizer, casts Shrink & Enlarge
-        [150251] = importantNPC, -- Mechagon, Pistonhead Mechanic, casts Heal & buffs others with Overclock Enrage(id:299588)
-        [144295] = importantNPC, -- Mechagon, Mechagon Mechanic, casts Heal & buffs others with Overclock Enrage(id:293930)
-    }
-else
-    npc_colors = {}
-end
-
 local IsInExecuteRange
 function ns.UpdateExecute(new_execute)
     IsInExecuteRange = new_execute
@@ -313,6 +168,9 @@ function NugNameplates:PLAYER_TARGET_CHANGED(event)
                 end
             end
 
+            -- propblem here is UPDATE_MOUSEOVER_UNIT doesn't fire when mouseover becomes nil
+            -- So ideally could try using a state driver
+            -- RegisterStateDriver(YourCustomFrame, "visibility", "[@mouseover,exists] show; hide")
             if frame == mouseoverFrame and UnitExists("mouseover") and mouseoverFrame ~= targetFrame then
                 if frame.NugPlate then
                     frame.NugPlate.Health.highlight:Show()
@@ -421,10 +279,16 @@ UnitEventHandler:RegisterEvent('UNIT_THREAT_LIST_UPDATE')
 
 UnitEventHandler:RegisterEvent('UNIT_ABSORB_AMOUNT_CHANGED')
 local function UpdateAbsorb(frame, unit)
-    local absorb = UnitGetTotalAbsorbs(unit) or 0
-
     local absorbBar = frame.Health.absorb
+    local healCalc = frame.Health.healCalc
+    UnitGetDetailedHealPrediction(unit, nil, healCalc)
+
+    local absorb, isOverabsorb = healCalc:GetDamageAbsorbs()
+
     absorbBar:SetValue(absorb)
+    -- local unclampedAbsorb = healCalc:GetTotalDamageAbsorbs()
+    -- frame.absorbOverflow:SetValue(unclampedAbsorb)
+    -- frame.absorbOverflow:SetAlphaFromBoolean(isOverabsorb, 1, 0)
 end
 function UnitEventHandler:UNIT_ABSORB_AMOUNT_CHANGED(event, unit)
     UpdateAbsorb(self, unit)
@@ -432,9 +296,11 @@ end
 
 UnitEventHandler:RegisterEvent('UNIT_HEAL_ABSORB_AMOUNT_CHANGED')
 local function UpdateHealAbsorb(frame, unit)
-    local healAbsorb = UnitGetTotalHealAbsorbs(unit) or 0
-
     local healAbsorbBar = frame.Health.healAbsorb
+    local healCalc = frame.Health.healCalc
+    UnitGetDetailedHealPrediction(unit, nil, healCalc)
+
+    local healAbsorb, isHealOverabsorb = healCalc:GetHealAbsorbs()
     healAbsorbBar:SetValue(healAbsorb)
 end
 function UnitEventHandler:UNIT_HEAL_ABSORB_AMOUNT_CHANGED(event, unit)
@@ -442,7 +308,7 @@ function UnitEventHandler:UNIT_HEAL_ABSORB_AMOUNT_CHANGED(event, unit)
 end
 
 
-local function UpdateHealthColor(frame, unit, cur, max)
+local function UpdateHealthColor(frame, unit)
     local parent = frame:GetParent()
 
     local sts = SpecialThreatStatus(unit)
@@ -466,7 +332,7 @@ local function UpdateHealthColor(frame, unit, cur, max)
 
     elseif not UnitIsPlayer(unit) and sts then
         t = colors[sts]
-    -- elseif IsInExecuteRange and IsInExecuteRange(cur/max, unit, cur, max) then
+    -- elseif IsInExecuteRange and IsInExecuteRange(unit) then
         -- t = colors.execute
     elseif(health.colorReaction and not UnitEngaged(unit, 'player') and reaction >= 4) then
         t = colors.reaction[reaction]
@@ -496,26 +362,50 @@ local function UpdateMaxHealth(frame, unit)
     health.healAbsorb:SetMinMaxValues(0, hm)
 end
 
-local function UpdateHealth(frame, unit)
-    local cur, max = UnitHealth(unit), UnitHealthMax(unit)
-    local health = frame.Health
 
-    health:SetMinMaxValues(0, max)
-    if(UnitIsConnected(unit)) then
-		health:SetValue(cur)
+local sparkCurve = C_CurveUtil.CreateCurve();
+sparkCurve:SetType(Enum.LuaCurveType.Step)
+sparkCurve:AddPoint(0.0, 1);
+sparkCurve:AddPoint(1.0, 0);
+local function UpdateHealth(frame, unit)
+    local healthBar = frame.Health
+    local healCalc = frame.Health.healCalc
+    UnitGetDetailedHealPrediction(unit, nil, healCalc)
+    local health = healCalc:GetCurrentHealth()
+    local healthPercent = healCalc:GetCurrentHealthPercent()
+    local healthMissing = healCalc:GetMissingHealth()
+    local incomingHeal = healCalc:GetIncomingHeals()
+    local absorb, isOverabsorb = healCalc:GetDamageAbsorbs()
+    local healAbsorb, isHealOverabsorb = healCalc:GetHealAbsorbs()
+    local unclampedAbsorb = healCalc:GetTotalDamageAbsorbs()
+    local healthMax = healCalc:GetMaximumHealth()
+
+    local sparkAlpha = UnitHealthPercent(unit, nil, sparkCurve)
+
+    -- health = 10000
+    -- absorb = 5000
+    -- healAbsorb = 5000
+
+
+    if UnitIsConnected(unit) then
+		healthBar:SetValue(health)
+        healthBar.lost:SetValue(health, 1)
+        healthBar.absorb:SetValue(absorb)
+        healthBar.healAbsorb:SetValue(healAbsorb)
+        healthBar.spark:SetAlpha(sparkAlpha)
 	else
-		health:SetValue(max)
+		healthBar:SetValue(healthMax)
+        healthBar.lost:SetValue(0)
+        healthBar.absorb:SetValue(0)
+        healthBar.healAbsorb:SetValue(0)
+        healthBar.spark:SetAlpha(0)
     end
 
-    health.lost:SetValue(0)
-
-    UpdateHealthColor(frame, unit, cur, max)
+    UpdateHealthColor(frame, unit)
 end
 
 function UnitEventHandler:UNIT_HEALTH(event, unit)
     UpdateHealth(self, unit)
-    UpdateAbsorb(self, unit)
-    UpdateHealAbsorb(self, unit)
 end
 function UnitEventHandler:UNIT_MAXHEALTH(event, unit)
     UpdateMaxHealth(self, unit)
@@ -597,7 +487,7 @@ local function CastStart(frame, unit)
     local name, text, texture, startTime, endTime, isTradeSkill, castGUID, notInterruptible, spellID, castID, delayTimeMs = UnitCastingInfo(unit)
     local duration = UnitCastingDuration(unit)
     castbar.channeling = false
-    castbar.empowered = nil
+    castbar.empowered = false
     if castbar.fader:IsPlaying() then
         castbar.fader:Stop()
     end
@@ -1053,6 +943,15 @@ function ns.SetupFrame(self, unit)
         local healthbar_height = pixelperfect(7, self)
         local castbar_height = pixelperfect(10, self)
         local total_height = castbar_height + healthbar_height + pixelperfect(2)
+        local white = "Interface\\BUTTONS\\WHITE8X8"
+
+        hooksecurefunc(self, "SetAlpha", function(self, alpha)
+            if alpha == 1 then
+                self.Health.lost:Show()
+            else
+                self.Health.lost:Hide()
+            end
+        end)
 
         self.colors = colors
         -- set size and points
@@ -1070,6 +969,7 @@ function ns.SetupFrame(self, unit)
         local health = CreateFrame("StatusBar", nil, self)
         health:SetAllPoints()
         health:SetStatusBarTexture(barTexture)
+        health:SetFrameLevel(6)
         -- health:SetPoint("LEFT")
         -- health:SetPoint("RIGHT")
         -- health:SetHeight(healthbar_height * 4)
@@ -1083,13 +983,20 @@ function ns.SetupFrame(self, unit)
 
         local spark = health:CreateTexture(nil, "OVERLAY")
 		spark:SetTexture("Interface\\AddOns\\NugNameplates\\spark.tga")
-        spark:SetAlpha(0)
+        spark:SetAlpha(1)
         spark:SetWidth(10)
         spark:SetHeight(pph)
         spark:SetVertexColor(1,0.7,0)
         spark:SetPoint("CENTER",health:GetStatusBarTexture(), "RIGHT", 0,0)
 		spark:SetBlendMode('ADD')
         health.spark = spark
+
+        local healCalc = CreateUnitHealPredictionCalculator()
+        healCalc:SetIncomingHealClampMode(0) -- Missing Health Clamp
+        healCalc:SetDamageAbsorbClampMode(Enum.UnitDamageAbsorbClampMode.MissingHealthWithoutIncomingHeals) -- Missing Health Clamp
+        healCalc:SetHealAbsorbClampMode(Enum.UnitHealAbsorbClampMode.CurrentHealth)
+        healCalc:SetHealAbsorbMode(Enum.UnitHealAbsorbMode.Total)
+        health.healCalc = healCalc
 
         self.Health = health
 
@@ -1125,30 +1032,48 @@ function ns.SetupFrame(self, unit)
             local b2 = math.min(1, b+0.45)
 
             element.lost:SetStatusBarColor(r2,g2,b2)
-            if element.absorb then
-                element.absorb:SetStatusBarColor(r,g,b)
-            end
+            -- if element.absorb then
+                -- element.absorb:SetStatusBarColor(r,g,b)
+            -- end
         end
 
             -----------------
             -- ABSORB BAR
             -----------------
+            local hpEdgeTexture = health:GetStatusBarTexture()
 
             local absorb = CreateFrame("StatusBar", nil, health)
 
-            -- absorb:SetVertTile(true)
             absorb:SetStatusBarTexture(shieldTexture)
             absorb:GetStatusBarTexture():SetHorizTile(true)
-            absorb:Hide()
+            absorb:GetStatusBarTexture():SetVertTile(true)
+            absorb:SetStatusBarColor(0.8, 0.8, 1, 1)
+            absorb:SetPoint("TOPLEFT", hpEdgeTexture, "TOPRIGHT")
+            absorb:SetPoint("BOTTOMLEFT", hpEdgeTexture, "BOTTOMRIGHT")
+            absorb:SetWidth(health:GetWidth())
+            absorb:SetWidth(health:GetWidth())
+
             health.absorb = absorb
 
             ----------------------
             -- HEAL ABSORB
             ----------------------
 
-            local healAbsorb = CreateFrame("StatusBar", nil, self)
-            healAbsorb:SetStatusBarTexture(texture)
-            healAbsorb:SetStatusBarColor(0,0,0, 0.4)
+
+            local healAbsorb = CreateFrame("StatusBar", nil, health)
+            healAbsorb:SetStatusBarTexture(shieldTexture)
+            healAbsorb:GetStatusBarTexture():SetHorizTile(true)
+            healAbsorb:GetStatusBarTexture():SetVertTile(true)
+            healAbsorb:SetStatusBarColor(0,0,0, 0.6)
+            healAbsorb:SetPoint("TOPRIGHT", hpEdgeTexture, "TOPRIGHT")
+            healAbsorb:SetPoint("BOTTOMRIGHT", hpEdgeTexture, "BOTTOMRIGHT")
+            healAbsorb:SetWidth(healthbar_height)
+            healAbsorb:SetWidth(health:GetWidth())
+            healAbsorb:SetFillStyle(3) -- Reverse
+            -- healAbsorb:SetStatusBarTexture("Interface\\AddOns\\Aptechka\\shieldtex")
+
+
+
             health.healAbsorb = healAbsorb
 
             --[[

@@ -31,9 +31,14 @@ local GetSpecialization = isClassic and function() return 1 end or _G.GetSpecial
 
 local ranges
 
+
+local executeCurve = C_CurveUtil.CreateCurve();
 local function SimplePercentCheck(threshold)
-    return function(p, unit, cur, max)
-        return p < threshold
+    executeCurve:ClearPoints()
+    executeCurve:AddPoint(0.0, 1)
+    executeCurve:AddPoint(threshold, 0)
+    return function(unit)
+        return UnitHealthPercent(unit, nil, executeCurve)
     end
 end
 
