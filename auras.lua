@@ -53,7 +53,7 @@ local function FillIcon(f, icon, count, debuffType, duration, expirationTime, is
     end
 end
 
-local function CreateIcon(parent, prev, width, height)
+function ns.AuraIconCreate(parent, prev, width, height)
 
     local f = CreateFrame("Frame", nil, parent)
 
@@ -94,11 +94,13 @@ local function CreateIcon(parent, prev, width, height)
 
     f.Fill = FillIcon
 
+    --[[
     if prev then
         f:SetPoint(parent.point, prev, parent.relativePoint, parent.gap, 0)
     else
         f:SetPoint(parent.point, parent, parent.point, 0,0)
     end
+    ]]
 
     return f
 end
@@ -160,7 +162,7 @@ function AuraHeader:Update(unit)
         nameplateShowAll) then
 
             if not self.icons[shown] then
-                self.icons[shown] = CreateIcon(self, self.icons[shown-1], self.width, self.height)
+                self.icons[shown] = ns.AuraIconCreate(self, self.icons[shown-1], self.width, self.height)
             end
             local aura = self.icons[shown]
             aura:Show()

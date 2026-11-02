@@ -678,6 +678,8 @@ function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
         ns.SetupFrame(nameplate.NugPlate, unit)
         -- nameplate.NugPlate.isNamePlate = true
     end
+    nameplate.NugPlate.Buffs:SetUnit(unit)
+    nameplate.NugPlate.Debuffs:SetUnit(unit)
 
     local frame = nameplate.NugPlate -- our root custom nameplate frame
 
@@ -945,32 +947,110 @@ local function MakeCompatibleAnimation(anim)
     return anim
 end
 
+
+local function SetIconTexCoord(texture, w, h)
+    local vscale = math.min(w/h, 1)
+    local hscale = math.min(h/w, 1)
+    local hm = 0.8 * (1-hscale) * 0.5 -- half of the texcoord height * scale difference
+    local vm = 0.8 * (1-vscale) * 0.5
+    texture:SetTexCoord(0.1+vm, 0.9-vm, 0.1+hm, 0.9-hm)
+end
+local function AddStackText(parent, anchorRegion)
+    local stackframe = CreateFrame("Frame", nil, parent)
+    stackframe:SetAllPoints(parent)
+    local stacktext = stackframe:CreateFontString(nil,"ARTWORK")
+    stacktext:SetDrawLayer("ARTWORK",1)
+    stacktext:SetJustifyH"RIGHT"
+    stacktext:SetPoint("BOTTOMRIGHT", anchorRegion, "BOTTOMRIGHT", 3,-1)
+    stacktext:SetTextColor(1,1,1)
+    return stacktext
+end
+local function UpdateFontStringSettings(text, fontName, fontSize, effect)
+    local font = LSM:Fetch("font",  fontName)
+    local flags = effect == "OUTLINE" and "OUTLINE"
+    if effect == "SHADOW" then
+        text:SetShadowOffset(1,-1)
+    else
+        text:SetShadowOffset(0,0)
+    end
+    text:SetFont(font, fontSize, flags)
+end
+function ns.SetupAuraIcon(f, width, height)
+
+    f:SetWidth(width);
+    f:SetHeight(height)
+
+    local p = ns.pixelperfect(1)
+    local blackLayer = MakeBorder(f, "Interface\\BUTTONS\\WHITE8X8", -1, -1, -1, -1, -2)
+    blackLayer:SetVertexColor(0,0,0,0.4)
+    blackLayer:SetDrawLayer("ARTWORK", -2)
+
+    local border = 1
+
+    local tex = f:CreateTexture(nil,"ARTWORK")
+    f.icon = tex
+    tex:SetAllPoints()
+    SetIconTexCoord(tex, width, height)
+
+    local cd = CreateFrame("Cooldown", nil, f, "CooldownFrameTemplate")
+    f.cooldown = cd
+    cd.noCooldownCount = true -- disable OmniCC for this cooldown
+    cd:SetHideCountdownNumbers(true)
+    cd:SetReverse(true)
+    cd:SetDrawEdge(false)
+    cd:SetAllPoints()
+
+    local dispelAlert = f:CreateTexture(nil, "ARTWORK", nil, 3)
+    dispelAlert:SetAtlas("hud-microbutton-highlightalert")
+    dispelAlert:SetPoint("CENTER",0,0)
+    dispelAlert:SetSize(width, height)
+    dispelAlert:SetScale(1.6)
+    dispelAlert:Hide()
+    f.dispel = dispelAlert
+
+    local stacktext = AddStackText(f, f)
+    UpdateFontStringSettings(stacktext, "ClearFont", 10, "OUTLINE")
+    f.stacktext = stacktext
+
+    return f
+end
+
 function ns.SetupFrame(self, unit)
 
         -- local healthbar_width = 85
         -- local healthbar_height = 7
         -- local castbar_height = 10
         -- local total_height = castbar_height + healthbar_height + 2
-        local hmul = 0.90
+
+        -- C_NamePlate.SetNamePlateSize(140, 50) -- This can work only out of combat on init
+        -- Default Nameplate size is 170x51, so we're not that far off any to care
+        local hmul = 0.80
         -- local vmul = 0.2
         local healthbar_width = pixelperfect(self:GetParent():GetWidth()*hmul, self)
         -- local healthbar_height = pixelperfect(self:GetParent():GetHeight()*vmul, self)
-        local healthbar_height = pixelperfect(7, self)
-        local castbar_height = pixelperfect(10, self)
-        local total_height = castbar_height + healthbar_height + pixelperfect(2)
+        local healthbar_height = pixelperfect(11, self)
+        local castbar_height = pixelperfect(14, self)
+        local total_height = castbar_height + healthbar_height + pixelperfect(2, self)
         local white = "Interface\\BUTTONS\\WHITE8X8"
 
         self.colors = colors
         -- set size and points
         local width = healthbar_width
         local height = healthbar_height
-        local ppw = width
-        local pph = height
-        healthbar_width = ppw
         castbar_height = pixelperfect(castbar_height, self)
         local pp1 = pixelperfect(1, self)
-        self:SetSize(ppw, pph)
+        -- self:SetSize(ppw, pph)
         self:SetPoint("CENTER", 0, 0)
+        self:SetWidth(healthbar_width)
+        self:SetHeight(healthbar_height)
+
+        -- self:SetPoint("TOP")
+        -- self:SetPoint("BOTTOm")
+
+        -- local demo = self:CreateTexture(nil, "ARTWORK")
+        -- demo:SetAllPoints(self:GetParent())
+        -- demo:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+        -- demo:SetVertexColor(0,0,0, 1)
 
         -- health bar
         local health = CreateFrame("StatusBar", nil, self)
@@ -992,7 +1072,7 @@ function ns.SetupFrame(self, unit)
 		spark:SetTexture("Interface\\AddOns\\NugNameplates\\spark.tga")
         spark:SetAlpha(1)
         spark:SetWidth(10)
-        spark:SetHeight(pph)
+        spark:SetHeight(healthbar_height)
         spark:SetVertexColor(1,0.7,0)
         spark:SetPoint("CENTER",health:GetStatusBarTexture(), "RIGHT", 0,0)
 		spark:SetBlendMode('ADD')
@@ -1316,20 +1396,95 @@ function ns.SetupFrame(self, unit)
             self.Castbar = castbar
         -- end
 
-        local buffs = ns.AuraHeader:Create("$parentBuffs", self, "HELPFUL", 3)
-        buffs:SetIconSize(pixelperfect(17), pixelperfect(17*0.7))
-        buffs:SetAttachPoints("BOTTOMRIGHT", "BOTTOMLEFT", -3)
-        buffs:SetSize(healthbar_width, 30)
-        buffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, 5)
+        -- local buffs = ns.AuraHeader:Create("$parentBuffs", self, "HELPFUL", 3)
+        -- buffs:SetIconSize(pixelperfect(17), pixelperfect(17*0.7))
+        -- buffs:SetAttachPoints("BOTTOMRIGHT", "BOTTOMLEFT", -3)
+        -- buffs:SetSize(healthbar_width, 30)
+        -- buffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, 5)
 
-        local debuffs = ns.AuraHeader:Create("$parentDebuffs", self, "HARMFUL|INCLUDE_NAME_PLATE_ONLY", 5)
-        debuffs:SetIconSize(pixelperfect(17), pixelperfect(17*0.7))
-        debuffs:SetAuraFilter(defaultUIFilter)
-        debuffs:SetAttachPoints("BOTTOMLEFT", "BOTTOMRIGHT", 3)
+        -- local debuffs = ns.AuraHeader:Create("$parentDebuffs", self, "HARMFUL|INCLUDE_NAME_PLATE_ONLY", 5)
+        -- debuffs:SetIconSize(pixelperfect(17), pixelperfect(17*0.7))
+        -- debuffs:SetAuraFilter(defaultUIFilter)
+        -- debuffs:SetAttachPoints("BOTTOMLEFT", "BOTTOMRIGHT", 3)
+        -- debuffs:SetSize(healthbar_width, 30)
+        -- debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, 5)
+
+        -- debuffs:SetMasterHeader(buffs)
+        local DebuffDispelOptions = {
+            style = Enum.CustomAuraButtonDispelTypeTextureStyle.PreserveAsset,
+            showWithoutDispelType = true,
+            showAlways = true,
+            showWhenHarmful = true,
+            -- showWhenHelpful = true,
+        }
+
+
+        local AuraIconInitializeFunc = function(showDispelBorder)
+        return function(button)
+            ns.SetupAuraIcon(button, pixelperfect(17, self), pixelperfect(17*0.7, self))
+
+            -- button:SetHideTooltipInCombat(true)
+
+            -- button:SetFrameLevel(FRAMELEVEL.BAR+10)
+            button:SetIcon(button.icon)
+            -- -- button:SetDurationBar(button.bar)
+            button:SetDurationCooldown(button.cooldown)
+            button:SetApplicationCount(button.stacktext)
+            button.dispel:Hide()
+            if showDispelBorder then
+                button:AddDispelTypeTexture(button.dispel, DebuffDispelOptions)
+            end
+
+            -- if button.AddAuraShownAnimation then
+            --     button:AddAuraShownAnimation(button.eyeCatcher)
+            -- end
+        end
+        end
+
+
+        local debuffs = CreateFrame("AuraContainer", nil, self, "CustomAuraContainerTemplate")
         debuffs:SetSize(healthbar_width, 30)
-        debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, 5)
+        debuffs:AddAuraGroup("PersonalDebuffs", "HARMFUL|!CROWD_CONTROL|PLAYER", {
+            maxFrameCount = 4,
+            candidateFilters = {
+                nameplateShowPersonal = true,
+            },
+            initializeFrame = AuraIconInitializeFunc(false),
+        });
+        debuffs:AddAuraGroup("AnyCC", "HARMFUL|CROWD_CONTROL", {
+            maxFrameCount = 3,
+            initializeFrame = AuraIconInitializeFunc(false),
+        });
+        debuffs:AddAuraGroup("ImportantBuffsFromAnySource", "HELPFUL|IMPORTANT|!PLAYER", {
+            maxFrameCount = 3,
+            initializeFrame = AuraIconInitializeFunc(false),
+        });
+        debuffs:SetAuraProcessingPolicy(CustomAuraContainerAuraProcessingPolicy.ProcessAura)
+        debuffs:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
+        debuffs:SetAuraGroupLayout("PersonalDebuffs", { elementSpacing = pixelperfect(3), groupSpacing = pixelperfect(3) })
+        debuffs:SetAuraGroupLayout("AnyCC", { elementSpacing = pixelperfect(3), groupSpacing = pixelperfect(5) })
+        debuffs:SetAuraGroupLayout("ImportantBuffsFromAnySource", { elementSpacing = pixelperfect(3), groupSpacing = pixelperfect(5) })
+        debuffs:SetFlowLayoutAxis(AnchorUtil.FlowLayoutAxis.Horizontal)
+        debuffs:SetFlowLayoutGrowthDirection(AnchorUtil.FlowDirection.Right, AnchorUtil.FlowDirection.Up)
+        debuffs:SetPoint("BOTTOMLEFT", health, "TOPLEFT", 0, 5)
 
-        debuffs:SetMasterHeader(buffs)
+
+        local buffs = CreateFrame("AuraContainer", nil, self, "CustomAuraContainerTemplate")
+        buffs:SetSize(healthbar_width, 30)
+        buffs:AddAuraGroup("Personalbuffs", "HELPFUL|!IMPORTANT|!PLAYER", {
+            maxFrameCount = 3,
+            candidateFilters = {
+                isStealable = true,
+            },
+            initializeFrame = AuraIconInitializeFunc(true),
+        });
+        buffs:SetAuraProcessingPolicy(CustomAuraContainerAuraProcessingPolicy.ProcessAura)
+        buffs:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
+        buffs:SetAuraGroupLayout("Personalbuffs", { elementSpacing = pixelperfect(3), groupSpacing = pixelperfect(3) })
+        buffs:SetFlowLayoutAxis(AnchorUtil.FlowLayoutAxis.Horizontal)
+        buffs:SetFlowLayoutGrowthDirection(AnchorUtil.FlowDirection.Right, AnchorUtil.FlowDirection.Up)
+        buffs:SetPoint("LEFT", health, "RIGHT", 5, 0)
+
 
         self.Buffs = buffs
         self.Debuffs = debuffs
