@@ -691,13 +691,11 @@ local function ToggleNameOnly(frame, enable)
 end
 
 local function UpdateQuestStatus(frame, unit)
-    --[[
     if NugNameplates:IsQuestUnit(unit) then
         frame.questIcon:Show()
     else
         frame.questIcon:Hide()
     end
-    ]]
 end
 function NugNameplates:QUEST_LOG_UPDATE(event, unit)
     self:ForEachNameplate(UpdateQuestStatus)
@@ -1336,7 +1334,7 @@ function ns.SetupFrame(self, unit)
         focusGlow:Hide()
         self.FocusGlow = focusGlow
 
-        local questIcon = health:CreateTexture(nil, "ARTWORK", nil, -3)
+        local questIcon = self:CreateTexture(nil, "ARTWORK", nil, -3)
         questIcon:SetAtlas("questnormal")
         questIcon:SetPoint("RIGHT", health, "LEFT", 0, 0)
         questIcon:SetSize(16, 16)

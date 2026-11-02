@@ -29,20 +29,17 @@ end
 
 
 function NugNameplates:IsQuestUnit(unit)
+    if C_Secrets.ShouldUnitIdentityBeSecret(unit) then return false end
+
     local info = C_TooltipInfo.GetUnit(unit)
     local match
-    for i=3,scantip:NumLines() do
-        local line = _G['NugNameplatesQuestTooltipTextLeft'..i]
-        local text = line and line:GetText()
+    for i=3,#info.lines do
+        local line = info.lines[i]
+        local text = line and line.leftText
         if not text then break end
 
-        -- quest progress text is indented, so...
-        if math.floor((select(4,line:GetPoint(2)) or 0)+0.5) == 28 then
-            match = matchProgress(text)
-            if match then break end
-        end
+        match = matchProgress(text)
+        if match then break end
     end
-
-    scantip:Hide()
     return match
 end
