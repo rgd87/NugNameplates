@@ -54,6 +54,7 @@ local UnitClass = UnitClass
 local UnitIsTapDenied = UnitIsTapDenied
 local UnitReaction = UnitReaction
 local EvaluateColorFromBoolean = C_CurveUtil.EvaluateColorFromBoolean
+local GetClassColor = C_ClassColor.GetClassColor
 
 local SpecialThreatStatus
 local UnitEngaged
@@ -383,9 +384,7 @@ local function UpdateHealthColor(frame, unit)
     --     (health.colorClassNPC and not UnitIsPlayer(unit)) or
     --     (health.colorClassPet and UnitPlayerControlled(unit) and not UnitIsPlayer(unit)) then
         local _, class = UnitClass(unit)
-        t = colors.class[class]
-
-
+        t = GetClassColor(class)
     elseif not UnitIsPlayer(unit) and sts then
         t = colors[sts]
     elseif(health.colorReaction and not UnitEngaged(unit, 'player') and reaction >= 4) then
@@ -643,22 +642,22 @@ UnitEventHandler.UNIT_SPELLCAST_INTERRUPTED = UnitEventHandler.UNIT_SPELLCAST_FA
 
 
 
-local function CastUpdateInterruptible(frame, isInterruptible)
+local function CastUpdateInterruptible(frame, notInterruptible)
     local castbar = frame.Castbar
-    if isInterruptible then -- in this case it's not a secret value, it is in CastStart tho
+    if notInterruptible then -- in this case it's not a secret value, it is in CastStart tho
+        castbar:SetColor(colors.notInterruptible:GetRGB())
+    else
         local color = castbar.channeling and colors.channeling or colors.casting
         castbar:SetColor(color:GetRGB())
-    else
-        castbar:SetColor(colors.notInterruptible:GetRGB())
     end
     castbar.shield:Show()
     castbar.shield:SetAlphaFromBoolean(notInterruptible, 1, 0)
 end
 function UnitEventHandler:UNIT_SPELLCAST_INTERRUPTIBLE(event,unit)
-    CastUpdateInterruptible(self, true)
+    CastUpdateInterruptible(self, false)
 end
 function UnitEventHandler:UNIT_SPELLCAST_NOT_INTERRUPTIBLE(event,unit)
-    CastUpdateInterruptible(self, false)
+    CastUpdateInterruptible(self, true)
 end
 
 local function CastSucceeded(frame, unit, castGUID, spellID, castID)

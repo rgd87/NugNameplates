@@ -1,7 +1,5 @@
 local addonName, ns = ...
 
-local scantip = CreateFrame("GameTooltip", "NugNameplatesQuestTooltip", UIParent, "GameTooltipTemplate")
-
 local function matchCount(text)
     local a, b = text:match('(%d+)/(%d+)')
     a = tonumber(a)
