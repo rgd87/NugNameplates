@@ -32,14 +32,8 @@ local GetSpecialization = isClassic and function() return 1 end or _G.GetSpecial
 local ranges
 
 
-local executeCurve = C_CurveUtil.CreateCurve();
 local function SimplePercentCheck(threshold)
-    executeCurve:ClearPoints()
-    executeCurve:AddPoint(0.0, 1)
-    executeCurve:AddPoint(threshold, 0)
-    return function(unit)
-        return UnitHealthPercent(unit, nil, executeCurve)
-    end
+    return threshold
 end
 
 local function CondemnExecute()
@@ -94,7 +88,10 @@ else
 
 ranges = {
     WARRIOR = {
-        CondemnExecute, CondemnExecute, CondemnExecute,
+        Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)),
+    },
+    DRUID = {
+        Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)), Wrap(SimplePercentCheck(0.20)),
     },
     ROGUE = {
         function() return IsPlayerSpell(328085) and SimplePercentCheck(0.35) end, -- blindside

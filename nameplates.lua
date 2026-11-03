@@ -53,6 +53,7 @@ local C_NamePlate = C_NamePlate
 local UnitClass = UnitClass
 local UnitIsTapDenied = UnitIsTapDenied
 local UnitReaction = UnitReaction
+local EvaluateColorFromBoolean = C_CurveUtil.EvaluateColorFromBoolean
 
 local SpecialThreatStatus
 local UnitEngaged
@@ -152,9 +153,20 @@ end
 
 
 
-local IsInExecuteRange
+local executeColorCurve = C_CurveUtil.CreateColorCurve();
+executeColorCurve:SetType(Enum.LuaCurveType.Step)
+local GetExecuteColor
 function ns.UpdateExecute(new_execute)
-    IsInExecuteRange = new_execute
+    if new_execute then
+        executeColorCurve:ClearPoints()
+        executeColorCurve:AddPoint(0.0, colors.execute)
+        executeColorCurve:AddPoint(new_execute, colors.health)
+        GetExecuteColor = function(unit)
+            return UnitHealthPercent(unit, nil, executeColorCurve)
+        end
+    else
+        GetExecuteColor = nil
+    end
 end
 
 local isPlayerTanking
@@ -376,14 +388,16 @@ local function UpdateHealthColor(frame, unit)
 
     elseif not UnitIsPlayer(unit) and sts then
         t = colors[sts]
-    -- elseif IsInExecuteRange and IsInExecuteRange(unit) then
-        -- t = colors.execute
     elseif(health.colorReaction and not UnitEngaged(unit, 'player') and reaction >= 4) then
         t = colors.reaction[reaction]
     -- elseif npcColor then
     --     t = npcColor
     elseif(health.colorHealth) then
-		t = colors.health
+        if GetExecuteColor then
+            t = GetExecuteColor(unit)
+        else
+		    t = colors.health
+        end
     end
 
     -- if(t) then
