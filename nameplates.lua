@@ -58,25 +58,25 @@ local SpecialThreatStatus
 local UnitEngaged
 
 -- local healthColor = { 1, 0.12, 0 }
-local healthColor = { 1, 0.3, 0.22 }
-local importantNPC = { hsv_shift(healthColor, -0.1, 0, 0.0) }
-local importantNPC2 = { hsv_shift(healthColor, -0.2, 0, 0.0) }
-local importantNPC3 = { hsv_shift(healthColor, 0.1, 0, 0.0) }
-local gtfo = { 1, 0.8, 0.8 }
-local MPlusAffix = { 0.8, 0.4, 0 }
-local garbage = {0.4, 0.4, 0.4}
+local healthColor = CreateColor( 1, 0.3, 0.22 )
+-- local importantNPC = { hsv_shift(healthColor, -0.1, 0, 0.0) }
+-- local importantNPC2 = { hsv_shift(healthColor, -0.2, 0, 0.0) }
+-- local importantNPC3 = { hsv_shift(healthColor, 0.1, 0, 0.0) }
+-- local gtfo = { 1, 0.8, 0.8 }
+-- local MPlusAffix = { 0.8, 0.4, 0 }
+-- local garbage = {0.4, 0.4, 0.4}
 
 local colors = setmetatable({
     -- health = { .7, 0.2, 0.1},
     health = healthColor,
-    execute = { 1, 0, 0.8 },
-    aggro_lost = { 0.6, 0, 1},
-    aggro_transitioning = { 1, 0.4, 0},
-    aggro_offtank = { 0, 1, 0.5},
+    execute = CreateColor( 1, 0, 0.8 ),
+    aggro_lost = CreateColor( 0.6, 0, 1),
+    aggro_transitioning = CreateColor( 1, 0.4, 0),
+    aggro_offtank = CreateColor( 0, 1, 0.5),
 
-    notInterruptible = {0.7, 0.7, 0.7},
-    casting = {1, 0.65, 0},
-    channeling = {0.8, 1, 0.3},
+    notInterruptible = CreateColor(0.7, 0.7, 0.7),
+    casting = CreateColor(1, 0.65, 0),
+    channeling = CreateColor(0.8, 1, 0.3),
 }, {__index = ns.colors})
 
 local defaults = {
@@ -386,12 +386,12 @@ local function UpdateHealthColor(frame, unit)
 		t = colors.health
     end
 
-    if(t) then
-        r, g, b = t[1], t[2], t[3]
-    end
+    -- if(t) then
+    --     r, g, b = t[1], t[2], t[3]
+    -- end
 
-    if(b) then
-        health:SetColor(r, g, b)
+    if(t) then
+        health:SetColor(t:GetRGB())
     end
 end
 
@@ -514,8 +514,9 @@ local function UpdateCastingInfo(self,name,texture,startTime,duration,castID, no
     self.Icon:SetTexture(texture)
     self.Text:SetText(name)
 
-    local color = self.channeling and colors.channeling or colors.casting
-    self:SetColor(unpack(color))
+    local colorInterruptible = self.channeling and colors.channeling or colors.casting
+    local color = C_CurveUtil.EvaluateColorFromBoolean(notInterruptible, colors.notInterruptible, colorInterruptible)
+    self:SetColor(color:GetRGB())
     self.isActive = true
     self:Show()
 
@@ -632,9 +633,9 @@ local function CastUpdateInterruptible(frame, isInterruptible)
     local castbar = frame.Castbar
     if isInterruptible then -- in this case it's not a secret value, it is in CastStart tho
         local color = castbar.channeling and colors.channeling or colors.casting
-        castbar:SetColor(unpack(color))
+        castbar:SetColor(color:GetRGB())
     else
-        castbar:SetColor(unpack(colors.notInterruptible))
+        castbar:SetColor(colors.notInterruptible:GetRGB())
     end
     castbar.shield:Show()
     castbar.shield:SetAlphaFromBoolean(notInterruptible, 1, 0)
@@ -1096,6 +1097,9 @@ function ns.TightenPixels(self, modScale)
     ict.Border:SetPoint("BOTTOMRIGHT", ict, "BOTTOMRIGHT", pp1, -pp1)
 end
 
+
+local curve = C_CurveUtil.CreateColorCurve();
+
 function ns.SetupFrame(self, unit)
 
         -- local healthbar_width = 85
@@ -1192,7 +1196,10 @@ function ns.SetupFrame(self, unit)
 
             local bg = element.bg
             if(bg) then local mu = bg.multiplier or 1
-                bg:SetVertexColor(r * mu, g * mu, b * mu)
+                -- Since color is secret value and our background is black anyway
+                -- will use alpha instead of multiplying color values
+                element.bg:SetVertexColor(r, g, b, mu)
+                -- bg:SetVertexColor(r * mu, g * mu, b * mu)
             end
 
             -- local r2 = math.min(1, r+0.45)
@@ -1462,7 +1469,7 @@ function ns.SetupFrame(self, unit)
 
             castbar.SetColor = function(self, r,g,b)
                 self:SetStatusBarColor(r, g, b)
-                self.bg:SetColorTexture(r*0.2, g*0.2, b*0.2)
+                self.bg:SetColorTexture(r, g, b, 0.2)
             end
 
 

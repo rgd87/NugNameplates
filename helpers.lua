@@ -252,89 +252,37 @@ ns.hsv_shift = hsv_shift
 -- default colors data below copied from oUF
 
 ns.colors = {
-    health = {49 / 255, 207 / 255, 37 / 255},
-    disconnected = {0.6, 0.6, 0.6},
-    tapped = {0.6, 0.6, 0.6},
+    health = CreateColor(49 / 255, 207 / 255, 37 / 255),
+    disconnected = CreateColor(0.6, 0.6, 0.6),
+    tapped = CreateColor(0.6, 0.6, 0.6),
 
-    class = {},
-	debuff = {},
+    -- class = {},
 	reaction = {},
 	power = {},
 	threat = {},
 }
 local colors = ns.colors
 
-local function customClassColors()
-	if(CUSTOM_CLASS_COLORS) then
-		local function updateColors()
-			for classToken, color in next, CUSTOM_CLASS_COLORS do
-				colors.class[classToken] = {color.r, color.g, color.b}
-			end
 
-			for _, obj in next, oUF.objects do
-				obj:UpdateAllElements('CUSTOM_CLASS_COLORS')
-			end
-		end
-
-		updateColors()
-		CUSTOM_CLASS_COLORS:RegisterCallback(updateColors)
-
-		return true
-	end
+for eclass, color in pairs(FACTION_BAR_COLORS) do
+	colors.reaction[eclass] = color
 end
 
-if(not customClassColors()) then
-	for classToken, color in next, RAID_CLASS_COLORS do
-		colors.class[classToken] = {color.r, color.g, color.b}
-	end
-
-	local eventHandler = CreateFrame('Frame')
-	eventHandler:RegisterEvent('ADDON_LOADED')
-	eventHandler:SetScript('OnEvent', function(self)
-		if(customClassColors()) then
-			self:UnregisterEvent('ADDON_LOADED')
-			self:SetScript('OnEvent', nil)
-		end
-	end)
-end
-
-local DebuffTypeColor = DebuffTypeColor or {
-    ["Magic"]   = { r = 0.20, g = 0.60, b = 1.00 },
-    ["Curse"]   = { r = 0.60, g = 0.00, b = 1.00 },
-    ["Disease"] = { r = 0.60, g = 0.40, b = 0.00 },
-    ["Poison"]  = { r = 0.00, g = 0.60, b = 0.00 },
-    ["none"]    = { r = 0.80, g = 0.00, b = 0.00 },
-}
-for debuffType, color in pairs(DebuffTypeColor) do
-	colors.debuff[debuffType] = {color.r, color.g, color.b}
-end
-
-for eclass, color in next, FACTION_BAR_COLORS do
-	colors.reaction[eclass] = {color.r, color.g, color.b}
-end
-
-for power, color in next, PowerBarColor do
+--[[
+for power, color in pairs(PowerBarColor) do
 	if (type(power) == 'string') then
-		if(type(select(2, next(color))) == 'table') then
-			colors.power[power] = {}
-
-            colors.power[power] = {color.r, color.g, color.b}
-			-- for index, color in next, color do
-                -- print(index, color)
-				-- colors.power[power][index] = {color.r, color.g, color.b}
-			-- end
-		else
-			colors.power[power] = {color.r, color.g, color.b, atlas = color.atlas}
-		end
+		colors.power[power] = color
 	end
 end
+]]
 
 if GetThreatStatusColor then
 for i = 0, 3 do
-	colors.threat[i] = {GetThreatStatusColor(i)}
+	colors.threat[i] = CreateColor(GetThreatStatusColor(i))
 end
 end
 
+--[[
 -- sourced from FrameXML/Constants.lua
 colors.power[0] = colors.power.MANA
 colors.power[1] = colors.power.RAGE
@@ -354,5 +302,6 @@ colors.power[17] = colors.power.FURY
 colors.power[18] = colors.power.PAIN
 
 -- alternate power, sourced from FrameXML/CompactUnitFrame.lua
-colors.power.ALTERNATE = {0.7, 0.7, 0.6}
+colors.power.ALTERNATE = CreateColor(0.7, 0.7, 0.6)
 colors.power[10] = colors.power.ALTERNATE
+]]
