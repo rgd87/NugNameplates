@@ -1,5 +1,6 @@
 ## Interface: 16001
 ## Author: d87
+## IconTexture: 132345
 ## Version: 2
 ## OptionalDeps: LibAuraTypes
 ## SavedVariables: NugNameplatesDB

@@ -22,12 +22,11 @@ function frame:PLAYER_ENTERING_WORLD()
     end
 end
 
-local apiLevel = math.floor(select(4,GetBuildInfo())/10000)
-local isClassic = apiLevel <= 3
-local isBC = apiLevel == 2
+-- local apiLevel = math.floor(select(4,GetBuildInfo())/10000)
+local isForever = WOW_PROJECT_ID == WOW_PROJECT_CAMELOT
 local isMainline = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE -- WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
-local GetSpecialization = isClassic and function() return 1 end or _G.GetSpecialization
+local GetSpecialization = isForever and function() return 1 end or C_SpecializationInfo.GetSpecialization
 
 local ranges
 
@@ -67,7 +66,7 @@ local function Wrap(func)
     end
 end
 
-if isClassic then
+if isForever then
     local IsAnySpellKnown = function (...)
         for i=1, select("#", ...) do
             local spellID = select(i, ...)
@@ -119,7 +118,7 @@ end
 local _, class = UnitClass("player")
 
 local IsTanking
-if isClassic then
+if isForever then
     IsTanking = function(class)
         return  (class == "WARRIOR" and GetShapeshiftForm() == 2) or (class == "DRUID" and GetShapeshiftForm() == 1)
     end

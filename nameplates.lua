@@ -860,11 +860,9 @@ end
         -- if unit == 'player' or UnitIsUnit('player',unit) then return end
 
         if not UnitAffectingCombat(unit) then return nil end
-
+        local status = UnitThreatSituation('player',unit)
         local threatStatus = nil
         if isPlayerTanking then
-            local status = UnitThreatSituation('player',unit)
-
             if status then
                 if status == 3 then
                     threatStatus = nil
@@ -875,7 +873,8 @@ end
                 end
             end
 
-            -- Kui tankmode
+            -- Off tank detection will probably fail to secret values, disabling
+            --[=[
             if not status or status < 3 then
                 -- player isn't tanking; get current target
                 local tank_unit = unit..'target'
@@ -890,16 +889,16 @@ end
                     end
                 end
             end
-        --[[
+            ]=]
+
         else
             if status and IsInGroup() and IsInInstance() and not UnitIsPlayer(unit) then
                 if status == 1 then
                     threatStatus = "aggro_transitioning"
-                elseif status >= 2 then
-                    threatStatus = "aggro_lost"
+                -- elseif status >= 2 then
+                    -- threatStatus = "aggro_lost"
                 end
             end
-        ]]
         end
 
         return threatStatus
@@ -1558,15 +1557,15 @@ function ns.SetupFrame(self, unit)
             candidateFilters = {
                 nameplateShowPersonal = true,
             },
-            initializeFrame = AuraIconInitializeFunc(false, 17, 17*0.7),
+            initializeFrame = AuraIconInitializeFunc(false, 25, 25*0.7),
         });
         debuffs:AddAuraGroup("AnyCC", "HARMFUL|CROWD_CONTROL", {
             maxFrameCount = 3,
-            initializeFrame = AuraIconInitializeFunc(false, 17, 17*0.7),
+            initializeFrame = AuraIconInitializeFunc(false, 25, 25*0.7),
         });
         debuffs:AddAuraGroup("ImportantBuffsFromAnySource", "HELPFUL|IMPORTANT|!PLAYER", {
             maxFrameCount = 3,
-            initializeFrame = AuraIconInitializeFunc(false, 17, 17*0.7),
+            initializeFrame = AuraIconInitializeFunc(false, 25, 25*0.7),
         });
         -- If anything look here at AuraProcessingPolicy first
         debuffs:SetAuraProcessingPolicy(CustomAuraContainerAuraProcessingPolicy.ProcessAura)
