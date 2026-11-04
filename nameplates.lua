@@ -200,26 +200,30 @@ function NugNameplates:PLAYER_TARGET_CHANGED(event)
                     local selectedScale = CVarCallbackRegistry:GetCVarNumberOrDefault("nameplateSelectedScale")
                     ns.TightenPixels(frame.NugPlate, selectedScale)
                     frame.NugPlate.wasTarget = true
+
+                    if not frame.NugPlate.NAME_ONLY then
+                        frame.NugPlate.Health.lost:Show()
+                    end
                 else
                     if frame.NugPlate.wasTarget then
                         ns.TightenPixels(frame.NugPlate, 1)
                         frame.NugPlate.wasTarget = nil
                     end
+
+                    frame.NugPlate.Health.lost:Hide()
                 end
                 if isTarget or frame == focusFrame or not UnitExists("target") then
                     frame.NugPlate:SetAlpha(1)
 
                     frame.NugPlate.Health.highlight:Hide()
-                    if not frame.NugPlate.NAME_ONLY then
-                        frame.NugPlate.Health.lost:Show()
-                    end
+
 
                     frame.NugPlate.TargetGlow:SetShown(frame == targetFrame)
                     frame.NugPlate.FocusGlow:SetShown(frame == focusFrame)
                 else
                     frame.NugPlate:SetAlpha(nonTargeAlpha)
                     frame.NugPlate.Health.highlight:Hide()
-                    frame.NugPlate.Health.lost:Hide()
+
                     frame.NugPlate.TargetGlow:Hide()
                     frame.NugPlate.FocusGlow:Hide()
                 end
@@ -705,7 +709,7 @@ local function ToggleNameOnly(frame, enable)
         frame.Health:Show()
         frame.Border:Show()
         frame.Health.bg:Show()
-        frame.Health.lost:Show()
+        -- frame.Health.lost:Show()
         frame.Castbar:Show()
         frame.Buffs:Show()
         frame.Debuffs:Show()
@@ -1293,6 +1297,7 @@ function ns.SetupFrame(self, unit)
         healthlost:SetStatusBarTexture(texture)
         healthlost:SetStatusBarColor(1, 0.6, 0.6)
         healthlost:SetAllPoints(health)
+        healthlost:Hide()
         health.lost = healthlost
 
 
