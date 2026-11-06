@@ -30,6 +30,7 @@ function NugNameplates:IsQuestUnit(unit)
     if C_Secrets.ShouldUnitIdentityBeSecret(unit) then return false end
 
     local info = C_TooltipInfo.GetUnit(unit)
+    if not info then return false end
     local match
     for i=3,#info.lines do
         local line = info.lines[i]

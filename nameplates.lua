@@ -373,7 +373,7 @@ local function UpdateHealthColor(frame, unit)
     local parent = frame:GetParent()
 
     local sts = SpecialThreatStatus(unit)
-    local reaction = UnitReaction(unit, 'player')
+    local reaction = UnitReaction(unit, 'player') or 0
     local health = frame.Health
 
     -- local npcID = frame["npcID"]
@@ -717,11 +717,13 @@ local function ToggleNameOnly(frame, enable)
 end
 
 local function UpdateQuestStatus(frame, unit)
+    --[[
     if NugNameplates:IsQuestUnit(unit) then
         frame.questIcon:Show()
     else
         frame.questIcon:Hide()
     end
+    ]]
 end
 function NugNameplates:QUEST_LOG_UPDATE(event, unit)
     self:ForEachNameplate(UpdateQuestStatus)
@@ -733,6 +735,28 @@ function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
 
     unitNameplates[unit] = nameplate
 
+
+    -- default unitframes
+    local default_nameplate = nameplate.UnitFrame
+    -- print(UnitName(unit), UnitNameplateShowsWidgetsOnly(unit), UnitIsGameObject(unit))
+
+
+    if(UnitNameplateShowsWidgetsOnly(unit) or UnitIsGameObject(unit)) then
+        default_nameplate:Show()
+        default_nameplate.selectionHighlight:Show()
+        default_nameplate:SetAlpha(1)
+        default_nameplate.selectionHighlight:SetAlpha(1)
+        if nameplate.NugPlate then
+            nameplate.NugPlate:Hide()
+        end
+        return
+    else
+        default_nameplate:Hide()
+        default_nameplate.selectionHighlight:Hide()
+        default_nameplate:SetAlpha(0)
+        default_nameplate.selectionHighlight:SetAlpha(0)
+    end
+
     NugNameplates:PLAYER_TARGET_CHANGED()
 
     -- Create
@@ -743,6 +767,7 @@ function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
         ns.SetupFrame(nameplate.NugPlate, unit)
         -- nameplate.NugPlate.isNamePlate = true
     end
+    nameplate.NugPlate:Show()
     nameplate.NugPlate.Buffs:SetUnit(unit)
     nameplate.NugPlate.Debuffs:SetUnit(unit)
 
@@ -750,7 +775,7 @@ function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
 
     local isPlayer = UnitIsPlayer(unit)
     local isAttackable = UnitCanAttack("player", unit)
-    local isFriendly = UnitReaction(unit, "player") >= 4
+    local isFriendly = UnitReaction(unit, "player") and UnitReaction(unit, "player") >= 4
     if isPlayer and not isAttackable and isFriendly then
         ToggleNameOnly(frame, true)
     else
@@ -771,12 +796,7 @@ function NugNameplates:NAME_PLATE_UNIT_ADDED(event, unit)
 
     -- frame.npcID = GetUnitNPCID(unit)
 
-    -- default unitframes
-    local default_nameplate = nameplate.UnitFrame
-    default_nameplate:Hide()
-    default_nameplate.selectionHighlight:Hide()
-    default_nameplate:SetAlpha(0)
-    default_nameplate.selectionHighlight:SetAlpha(0)
+
 
 
     --[[
@@ -1086,10 +1106,13 @@ function ns.TightenPixels(self, modScale)
     -- when nameplates scale after being selected that doesn't appear in :GetEffectiveScale()
     -- so doing some custom multiplication here to keep pixelperfection on selected frame
     local hmul = 0.80
-    local healthbar_width = pixelperfect(self:GetParent():GetWidth()*hmul, self, modScale)
-    local healthbar_height = pixelperfect(10, self, modScale)
-    local castbar_height = pixelperfect(12, self, modScale)
-    local total_height = castbar_height + healthbar_height + pixelperfect(2, self, modScale)
+    local basePlateWidth = self:GetParent():GetWidth() -- it's bugging out
+    local pptarget = UIParent
+    basePlateWidth = 170
+    local healthbar_width = pixelperfect(basePlateWidth*hmul, pptarget, modScale)
+    local healthbar_height = pixelperfect(10, pptarget, modScale)
+    local castbar_height = pixelperfect(12, pptarget, modScale)
+    local total_height = castbar_height + healthbar_height + pixelperfect(2, pptarget, modScale)
 
     self:SetWidth(healthbar_width)
     self:SetHeight(healthbar_height)
@@ -1099,12 +1122,12 @@ function ns.TightenPixels(self, modScale)
     self.Health.healAbsorb:SetWidth(health:GetWidth())
     self.Castbar:SetHeight(castbar_height)
 
-    local offset = pixelperfect(2, self, modScale)
+    local offset = pixelperfect(2, pptarget, modScale)
     local border = self.Border
     border:SetPoint("TOPLEFT", health, "TOPLEFT", -offset, offset)
     border:SetPoint("BOTTOMRIGHT", health, "BOTTOMRIGHT", offset, -offset)
 
-    local pp1 = pixelperfect(1, self, modScale)
+    local pp1 = pixelperfect(1, pptarget, modScale)
     self.Castbar.Border:SetPoint("TOPLEFT", self.Castbar, "TOPLEFT", -pp1, -pp1)
     self.Castbar.Border:SetPoint("BOTTOMRIGHT", self.Castbar, "BOTTOMRIGHT", pp1, -pp1)
 
@@ -1125,21 +1148,25 @@ function ns.SetupFrame(self, unit)
 
         -- C_NamePlate.SetNamePlateSize(140, 50) -- This can work only out of combat on init
         -- Default Nameplate size is 170x51, so we're not that far off any to care
+        local pptarget = UIParent
+
         local hmul = 0.80
         -- local vmul = 0.2
-        local healthbar_width = pixelperfect(self:GetParent():GetWidth()*hmul, self)
+        local basePlateWidth = self:GetParent():GetWidth() -- it's bugging out
+        local basePlateWidth = 170
+        local healthbar_width = pixelperfect(basePlateWidth*hmul, pptarget)
         -- local healthbar_height = pixelperfect(self:GetParent():GetHeight()*vmul, self)
-        local healthbar_height = pixelperfect(10, self)
-        local castbar_height = pixelperfect(12, self)
-        local total_height = castbar_height + healthbar_height + pixelperfect(2, self)
+        local healthbar_height = pixelperfect(10, pptarget)
+        local castbar_height = pixelperfect(12, pptarget)
+        local total_height = castbar_height + healthbar_height + pixelperfect(2, pptarget)
         local white = "Interface\\BUTTONS\\WHITE8X8"
 
         self.colors = colors
         -- set size and points
         local width = healthbar_width
         local height = healthbar_height
-        castbar_height = pixelperfect(castbar_height, self)
-        local pp1 = pixelperfect(1, self)
+        castbar_height = pixelperfect(castbar_height, pptarget)
+        local pp1 = pixelperfect(1, pptarget)
         -- self:SetSize(ppw, pph)
         self:SetPoint("CENTER", 0, 0)
         self:SetWidth(healthbar_width)
@@ -1297,6 +1324,7 @@ function ns.SetupFrame(self, unit)
         healthlost:SetStatusBarTexture(texture)
         healthlost:SetStatusBarColor(1, 0.6, 0.6)
         healthlost:SetAllPoints(health)
+        healthlost:SetFrameLevel(health:GetFrameLevel()-1)
         healthlost:Hide()
         health.lost = healthlost
 
@@ -1329,7 +1357,7 @@ function ns.SetupFrame(self, unit)
         -- border:SetTexture(white)
         border:SetVertexColor(0,0,0)
         border:SetTextureSliceMargins(12, 12, 12, 12)
-        local offset = pixelperfect(2, self)
+        local offset = pixelperfect(2, pptarget)
         border:SetPoint("TOPLEFT", health, "TOPLEFT", -offset, offset)
         border:SetPoint("BOTTOMRIGHT", health, "BOTTOMRIGHT", offset, -offset)
         self.Border = border
@@ -1533,7 +1561,7 @@ function ns.SetupFrame(self, unit)
 
         local AuraIconInitializeFunc = function(showDispelBorder, width, height)
         return function(button)
-            ns.SetupAuraIcon(button, pixelperfect(width, self), pixelperfect(height, self))
+            ns.SetupAuraIcon(button, pixelperfect(width, pptarget), pixelperfect(height, pptarget))
 
             -- button:SetHideTooltipInCombat(true)
 
