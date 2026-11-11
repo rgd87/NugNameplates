@@ -265,16 +265,17 @@ NugNameplates:RegisterEvent("RAID_TARGET_UPDATE")
 
 local function UpdateRaidIcon(frame, unit)
     local index = GetRaidTargetIndex(unit)
+    -- if issecretvalue(index) then print("RaidTarget is secret value"); return end
     local raidicon = frame.RaidTargetIndicator
-    if(index) then
+    if index then
 		SetRaidTargetIconTexture(raidicon, index)
-        raidicon:Show()
-        if index ~= raidicon.current then
+        if not raidicon:IsShown() then
             if raidicon.anim:IsPlaying() then
                 raidicon.anim:Stop()
             end
             raidicon.anim:Play()
         end
+        raidicon:Show()
 	else
 		raidicon:Hide()
     end
@@ -1096,11 +1097,69 @@ function ns.SetupAuraIcon(f, width, height)
     f.dispel = dispelAlert
 
     local stacktext = AddStackText(f, f)
-    UpdateFontStringSettings(stacktext, "ClearFont", 10, "OUTLINE")
+    UpdateFontStringSettings(stacktext, "Arial", 10, "OUTLINE")
     f.stacktext = stacktext
 
     return f
 end
+
+function ns.AuraButtonBarIcon(self, width, height)
+    self:SetSize(pixelperfect(width), pixelperfect(height));
+
+    local f = CreateFrame("StatusBar",nil,self)
+
+    -- f:SetFrameLevel(FRAMELEVEL.ICON)
+
+    f:SetAllPoints(self)
+
+    local border = pixelperfect(1)
+    self.outline = MakeBorder(self, "Interface\\BUTTONS\\WHITE8X8", -border, -border, -border, -border, -2)
+    self.outline:SetVertexColor(0,0,0)
+
+    f:SetFrameLevel(5)
+    f:SetOrientation("VERTICAL")
+    f:SetFillStyle(3)
+    f:SetStatusBarTexture[[Interface\BUTTONS\WHITE8X8]]
+    local statusBarTexture = f:GetStatusBarTexture()
+    -- f:GetStatusBarTexture():SetTexCoord(0.1, 0.9, 0.1, 0.9)
+    f:SetStatusBarColor(0,0,0, 0.6)
+    -- f:SetFillStyle(ENUM_FILLSTYLE_REVERSE)
+
+    local bgicon = self:CreateTexture(nil,"ARTWORK",nil,-3)
+    bgicon:SetTexture[[Interface\BUTTONS\WHITE8X8]]
+    SetIconTexCoord(bgicon, width, height)
+    -- bgicon:SetTexCoord(GetAdaptiveCroppedTexCoord(self))
+    bgicon:SetAllPoints(f)
+
+    local makeSpark = true
+    if makeSpark then
+        local spark = f:CreateTexture(nil, "ARTWORK", nil, 5)
+        spark:SetTexture("Interface/AddOns/Aptechka/spark")
+        spark:SetBlendMode("ADD")
+        spark:SetVertexColor(1,0.7,0)
+        spark:SetAlpha(0.5)
+        spark:SetTexCoord(1,1,0,1,1,0,0,0)
+        spark:SetHeight(self:GetHeight())
+        spark:SetPoint("LEFT", statusBarTexture, "BOTTOMLEFT")
+        spark:SetPoint("RIGHT", statusBarTexture, "BOTTOMRIGHT")
+        f.spark = spark
+    end
+
+
+    local stacktext = self:CreateFontString(nil,"ARTWORK")
+    stacktext:SetDrawLayer("ARTWORK",1)
+    stacktext:SetJustifyH"RIGHT"
+    stacktext:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", 3,-1)
+    stacktext:SetTextColor(1,1,1)
+    UpdateFontStringSettings(stacktext, "Arial", 12, "OUTLINE")
+    self.count = stacktext
+
+    self.icon = bgicon
+    self.bar = f
+
+    return f
+end
+
 
 function ns.TightenPixels(self, modScale)
     -- when nameplates scale after being selected that doesn't appear in :GetEffectiveScale()
@@ -1184,7 +1243,7 @@ function ns.SetupFrame(self, unit)
         local health = CreateFrame("StatusBar", nil, self)
         health:SetAllPoints()
         health:SetStatusBarTexture(barTexture)
-        health:SetFrameLevel(6)
+        health:SetFrameLevel(self:GetFrameLevel()+10)
         -- health:SetPoint("LEFT")
         -- health:SetPoint("RIGHT")
         -- health:SetHeight(healthbar_height * 4)
@@ -1562,6 +1621,7 @@ function ns.SetupFrame(self, unit)
         local AuraIconInitializeFunc = function(showDispelBorder, width, height)
         return function(button)
             ns.SetupAuraIcon(button, pixelperfect(width, pptarget), pixelperfect(height, pptarget))
+            -- ns.AuraButtonBarIcon(button, pixelperfect(width, pptarget), pixelperfect(height, pptarget))
 
             -- button:SetHideTooltipInCombat(true)
 
@@ -1581,6 +1641,29 @@ function ns.SetupFrame(self, unit)
         end
         end
 
+        local AuraBarIconInitializeFunc = function(showDispelBorder, width, height)
+        return function(button)
+            -- ns.SetupAuraIcon(button, pixelperfect(width, pptarget), pixelperfect(height, pptarget))
+            ns.AuraButtonBarIcon(button, pixelperfect(width, pptarget), pixelperfect(height, pptarget))
+
+            -- button:SetHideTooltipInCombat(true)
+
+            -- button:SetFrameLevel(FRAMELEVEL.BAR+10)
+            button:SetIcon(button.icon)
+            button:SetDurationBar(button.bar)
+            -- button:SetDurationCooldown(button.cooldown)
+            button:SetApplicationCount(button.count)
+            -- button.dispel:Hide()
+            -- if showDispelBorder then
+            --     button:AddDispelTypeTexture(button.dispel, DebuffDispelOptions)
+            -- end
+
+            -- if button.AddAuraShownAnimation then
+            --     button:AddAuraShownAnimation(button.eyeCatcher)
+            -- end
+        end
+        end
+
 
         local debuffs = CreateFrame("AuraContainer", nil, self, "CustomAuraContainerTemplate")
         debuffs:SetSize(healthbar_width, 30)
@@ -1589,15 +1672,15 @@ function ns.SetupFrame(self, unit)
             candidateFilters = {
                 nameplateShowPersonal = true,
             },
-            initializeFrame = AuraIconInitializeFunc(false, 25, 25*0.7),
+            initializeFrame = AuraBarIconInitializeFunc(false, 25, 25*0.7),
         });
         debuffs:AddAuraGroup("AnyCC", "HARMFUL|CROWD_CONTROL", {
             maxFrameCount = 3,
-            initializeFrame = AuraIconInitializeFunc(false, 25, 25*0.7),
+            initializeFrame = AuraBarIconInitializeFunc(false, 25, 25*0.7),
         });
         debuffs:AddAuraGroup("ImportantBuffsFromAnySource", "HELPFUL|IMPORTANT|!PLAYER", {
             maxFrameCount = 3,
-            initializeFrame = AuraIconInitializeFunc(false, 25, 25*0.7),
+            initializeFrame = AuraBarIconInitializeFunc(false, 25, 25*0.7),
         });
         -- If anything look here at AuraProcessingPolicy first
         debuffs:SetAuraProcessingPolicy(CustomAuraContainerAuraProcessingPolicy.ProcessAura)
